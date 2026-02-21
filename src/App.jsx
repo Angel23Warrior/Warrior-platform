@@ -185,7 +185,7 @@ export default function WarriorPlatform() {
         </div>
 
         {/* User chips */}
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, flexWrap:"wrap" }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, flexWrap:"wrap", marginBottom:16 }}>
           <div style={{ fontSize:13, color:"#c9a84c" }}>{userName}</div>
           <GoldChip>🔥 {streak} streak</GoldChip>
           <GoldChip>⭐ {score} pts</GoldChip>
@@ -193,11 +193,43 @@ export default function WarriorPlatform() {
             {userData?.isPrivate ? "🔒 Private" : "🌐 Sharing"}
           </button>
         </div>
+
+        {/* 30-day progress bars */}
+        {(() => {
+          const joinDate = userData?.joinDate ? new Date(userData.joinDate) : new Date();
+          const daysPassed = Math.min(30, Math.max(1, Math.floor((Date.now() - joinDate) / 86400000) + 1));
+          const journeyPct = Math.round(((daysPassed - 1) / 30) * 100);
+          const completedDays = Array.from({length: 30}, (_, i) => {
+            const d = new Date(joinDate); d.setDate(joinDate.getDate() + i);
+            const key = d.toISOString().slice(0,10);
+            const log = (userData?.dailyLogs||{})[key] || {};
+            return CORE4.every(c => log[c.id]);
+          }).filter(Boolean).length;
+          const completionPct = Math.round((completedDays / 30) * 100);
+          return (
+            <div style={{ padding:"0 4px" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"#8da0b5", marginBottom:4, letterSpacing:1, textTransform:"uppercase", fontFamily:"'Barlow Condensed','Oswald',sans-serif" }}>
+                <span>30-Day Journey</span>
+                <span style={{ color:"#c9a84c" }}>Day {daysPassed} of 30 — {journeyPct}%</span>
+              </div>
+              <div style={{ background:"#0d1b2a", borderRadius:4, height:8, overflow:"hidden", marginBottom:8, border:"1px solid #c9a84c22" }}>
+                <div style={{ height:"100%", width:`${journeyPct}%`, background:"linear-gradient(90deg,#c9a84c,#e8c96c)", borderRadius:4, transition:"width 0.6s" }} />
+              </div>
+              <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"#8da0b5", marginBottom:4, letterSpacing:1, textTransform:"uppercase", fontFamily:"'Barlow Condensed','Oswald',sans-serif" }}>
+                <span>Core 4 Completion</span>
+                <span style={{ color:"#4caf50" }}>{completedDays} full days — {completionPct}%</span>
+              </div>
+              <div style={{ background:"#0d1b2a", borderRadius:4, height:8, overflow:"hidden", border:"1px solid #4caf5022" }}>
+                <div style={{ height:"100%", width:`${completionPct}%`, background:"linear-gradient(90deg,#2a7a2a,#4caf50)", borderRadius:4, transition:"width 0.6s" }} />
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {/* ── NAV ── */}
       <div style={{ display:"flex", background:"#0d1b2a", borderBottom:"1px solid #c9a84c33", overflowX:"auto" }}>
-        {[["dashboard","Today"],["leaderboard","Leaderboard"],["goals","My Goals"]].map(([id, label]) => (
+        {[["dashboard","Today"],["calendar","30 Days"],["leaderboard","Leaderboard"],["goals","My Goals"]].map(([id, label]) => (
           <button key={id} onClick={() => setScreen(id)} style={{
             padding:"12px 22px", border:"none", background:"none",
             color: screen===id ? "#c9a84c" : "#5a7a9a",
@@ -260,6 +292,53 @@ export default function WarriorPlatform() {
             </div>
           </div>
         )}
+
+        {/* ── 30-DAY CALENDAR ── */}
+        {screen === "calendar" && (() => {
+          const joinDate = userData?.joinDate ? new Date(userData.joinDate) : new Date();
+          const today2 = todayStr();
+          const daysPassed = Math.min(30, Math.max(1, Math.floor((Date.now() - joinDate) / 86400000) + 1));
+          return (
+            <div>
+              <SectionHeader>📅 30-Day View</SectionHeader>
+              <div style={{ fontSize:12, color:"#9a8a7a", marginBottom:16, fontFamily:"'Avenir Next','Avenir',sans-serif" }}>
+                Tap any day to jump to it. Gold dots = Core 4 items completed.
+              </div>
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(6,1fr)", gap:8 }}>
+                {Array.from({length:30}, (_,i) => {
+                  const d = new Date(joinDate); d.setDate(joinDate.getDate() + i);
+                  const key = d.toISOString().slice(0,10);
+                  const log = (userData?.dailyLogs||{})[key] || {};
+                  const done = CORE4.filter(c => log[c.id]).length;
+                  const full = done === 4;
+                  const isCurrent = key === today2;
+                  const future = key > today2;
+                  return (
+                    <div key={i} onClick={() => !future && setScreen("dashboard")} style={{
+                      background: full ? "linear-gradient(135deg,#1a3010,#253a10)" : future ? "#f9f7f4" : "#fff",
+                      border: isCurrent ? "2px solid #c9a84c" : full ? "1px solid #4a7a20" : "1px solid #e0d8cc",
+                      borderRadius:6, padding:"10px 4px", textAlign:"center",
+                      cursor: future ? "default" : "pointer", opacity: future ? 0.4 : 1,
+                    }}>
+                      <div style={{ fontSize:10, color:"#9a8a7a", marginBottom:2, fontFamily:"'Barlow Condensed','Oswald',sans-serif", letterSpacing:1 }}>DAY</div>
+                      <div style={{ fontSize:20, fontWeight:700, color: isCurrent?"#c9a84c":full?"#4caf50":"#1B3A5C", fontFamily:"'Barlow Condensed','Oswald',sans-serif" }}>{i+1}</div>
+                      <div style={{ marginTop:5, display:"flex", gap:2, justifyContent:"center" }}>
+                        {CORE4.map(c => (
+                          <div key={c.id} style={{ width:5, height:5, borderRadius:"50%", background: log[c.id]?"#c9a84c":"#e0d8cc" }} />
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div style={{ marginTop:16, display:"flex", gap:16, fontSize:11, color:"#9a8a7a", flexWrap:"wrap", fontFamily:"'Avenir Next','Avenir',sans-serif" }}>
+                <span>🟡 dots = Core 4 items</span>
+                <span>🟢 green = full day</span>
+                <span>🟡 gold border = today</span>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* ── LEADERBOARD ── */}
         {screen === "leaderboard" && (
