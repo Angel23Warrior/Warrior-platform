@@ -230,7 +230,7 @@ export default function App(){
   ];
 
   return(
-    <div style={{minHeight:"100vh",background:D.bg,color:D.textPrimary,fontFamily:FB,paddingBottom:84}}>
+    <div style={{minHeight:"100vh",background:D.bg,color:D.textPrimary,fontFamily:FB,paddingBottom:100}}>
       <GS/>
 
       {/* Confetti */}
