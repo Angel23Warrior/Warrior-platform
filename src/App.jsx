@@ -346,56 +346,117 @@ export default function App(){
           </div>
         )}
 
-        {/* CALENDAR */}
+                {/* CALENDAR */}
         {screen==="calendar"&&(()=>{
           const dim=new Date(calYear,calMonth+1,0).getDate();
           const fdow=new Date(calYear,calMonth,1).getDay();
           const mname=new Date(calYear,calMonth,1).toLocaleString("default",{month:"long"});
           const mkey=calYear+"-"+String(calMonth+1).padStart(2,"0");
           const fullThis=allLogs.filter(l=>l.log_date.startsWith(mkey)&&l.movement&&l.god&&l.vanity&&l.business).length;
+          const partialThis=allLogs.filter(l=>l.log_date.startsWith(mkey)&&[l.movement,l.god,l.vanity,l.business].some(Boolean)&&![l.movement,l.god,l.vanity,l.business].every(Boolean)).length;
           const isCurMon=calYear===now2.getFullYear()&&calMonth===now2.getMonth();
           const prevM=()=>{if(calMonth===0){setCalMonth(11);setCalYear(y=>y-1);}else setCalMonth(m=>m-1);};
           const nextM=()=>{if(calMonth===11){setCalMonth(0);setCalYear(y=>y+1);}else setCalMonth(m=>m+1);};
+          const monthPctCal=Math.round((fullThis/dim)*100);
           return(
             <div style={{animation:"fadeUp 0.35s ease both"}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-                <button onClick={prevM} style={{background:"none",border:"none",color:D.textSec,cursor:"pointer",fontSize:24,padding:"4px 8px",lineHeight:1}}>‹</button>
+
+              {/* Month header */}
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+                <button onClick={prevM} style={{width:36,height:36,borderRadius:"50%",background:D.surface,border:"1px solid "+D.divider,color:D.textSec,cursor:"pointer",fontSize:20,display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
                 <div style={{textAlign:"center"}}>
-                  <div style={{fontSize:20,fontWeight:700,color:D.textPrimary}}>{mname} {calYear}</div>
-                  <div style={{fontSize:13,color:D.textTert,marginTop:2}}>Full days: <span style={{color:D.success,fontWeight:600}}>{fullThis}</span></div>
+                  <div style={{fontSize:22,fontWeight:700,color:D.textPrimary,fontFamily:FF,letterSpacing:1}}>{mname} {calYear}</div>
+                  <div style={{fontSize:12,color:D.textTert,marginTop:3}}>
+                    <span style={{color:D.success,fontWeight:600}}>{fullThis} full</span>
+                    <span style={{opacity:0.4,margin:"0 6px"}}>·</span>
+                    <span style={{color:D.brand,fontWeight:600}}>{partialThis} partial</span>
+                    <span style={{opacity:0.4,margin:"0 6px"}}>·</span>
+                    <span>{dim-(fullThis+partialThis)} empty</span>
+                  </div>
                 </div>
-                <button onClick={nextM} disabled={isCurMon} style={{background:"none",border:"none",color:isCurMon?D.textTert:D.textSec,cursor:"pointer",fontSize:24,padding:"4px 8px",lineHeight:1,opacity:isCurMon?0.3:1}}>›</button>
+                <button onClick={nextM} disabled={isCurMon} style={{width:36,height:36,borderRadius:"50%",background:D.surface,border:"1px solid "+D.divider,color:isCurMon?D.textTert:D.textSec,cursor:isCurMon?"default":"pointer",fontSize:20,display:"flex",alignItems:"center",justifyContent:"center",opacity:isCurMon?0.3:1}}>›</button>
               </div>
+
+              {/* Month progress bar */}
+              <div style={{background:D.surface,borderRadius:D.r12,padding:"14px 16px",marginBottom:16,border:"1px solid "+D.divider}}>
+                <div style={{display:"flex",justifyContent:"space-between",fontSize:12,color:D.textTert,marginBottom:8}}>
+                  <span>Month completion</span>
+                  <span style={{color:D.success,fontWeight:600}}>{monthPctCal}%</span>
+                </div>
+                <div style={{background:D.bg,borderRadius:4,height:6,overflow:"hidden"}}>
+                  <div style={{height:"100%",width:monthPctCal+"%",background:"linear-gradient(90deg,"+D.success+",#6EE7B7)",borderRadius:4,transition:"width 0.6s ease"}}/>
+                </div>
+                <div style={{display:"flex",gap:16,marginTop:10}}>
+                  {[{color:D.success,label:"Full Power Hour"},{color:D.brand,label:"Partial"},{color:"rgba(255,255,255,0.15)",label:"Not logged"}].map(l=>(
+                    <div key={l.label} style={{display:"flex",alignItems:"center",gap:5}}>
+                      <div style={{width:8,height:8,borderRadius:2,background:l.color,flexShrink:0}}/>
+                      <span style={{fontSize:11,color:D.textTert}}>{l.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Day of week headers */}
               <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:4,marginBottom:6}}>
-                {["S","M","T","W","T","F","S"].map((d,i)=>(
-                  <div key={i} style={{textAlign:"center",fontSize:11,color:D.textTert,fontWeight:600,padding:"4px 0"}}>{d}</div>
+                {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((d,i)=>(
+                  <div key={i} style={{textAlign:"center",fontSize:10,color:D.textTert,fontWeight:600,letterSpacing:0.3}}>{d}</div>
                 ))}
               </div>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:4}}>
-                {Array.from({length:fdow},(_,i)=><div key={`e${i}`}/>)}
+
+              {/* Calendar grid */}
+              <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:5}}>
+                {Array.from({length:fdow},(_,i)=><div key={"e"+i}/>)}
                 {Array.from({length:dim},(_,i)=>{
                   const dn=i+1;
                   const key=calYear+"-"+String(calMonth+1).padStart(2,"0")+"-"+String(dn).padStart(2,"0");
                   const log=allLogs.find(l=>l.log_date===key)||{};
                   const done=CORE4.filter(c=>log[c.id]).length;
                   const full=done===4;
+                  const partial=done>0&&done<4;
                   const isCur=key===todayStr();
                   const future=key>todayStr();
+                  const isSelected=key===selectedDate;
                   return(
-                    <div key={dn} onClick={()=>{if(!future){setSelectedDate(key);setScreen("dashboard");}}} style={{aspectRatio:"1",background:full?D.successMuted:isCur?D.brandMuted:D.surface,border:isCur?`1px solid ${D.brand}`:full?`1px solid rgba(53,193,139,0.3)`:`1px solid ${D.divider}`,borderRadius:D.r10,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",cursor:future?"default":"pointer",opacity:future?0.3:1,transition:"all 0.15s"}}>
-                      <div style={{fontSize:14,fontWeight:600,color:isCur?D.brand:full?D.success:D.textPrimary,lineHeight:1}}>{dn}</div>
-                      {done>0&&done<4&&<div style={{display:"flex",gap:2,marginTop:3}}>{CORE4.map(c=><div key={c.id} style={{width:3,height:3,borderRadius:"50%",background:log[c.id]?D.brand:"rgba(255,255,255,0.12)"}}/>)}</div>}
-                      {full&&<div style={{fontSize:9,marginTop:2,color:D.success}}>✓</div>}
+                    <div key={dn} onClick={()=>{if(!future){setSelectedDate(key);setScreen("dashboard");}}}
+                      style={{
+                        aspectRatio:"1",
+                        background:full?D.successMuted:partial?D.brandMuted:isCur?"rgba(255,255,255,0.05)":D.surface,
+                        border:isSelected?"2px solid "+D.brand:isCur?"1px solid rgba(214,178,94,0.5)":full?"1px solid rgba(53,193,139,0.25)":partial?"1px solid rgba(214,178,94,0.2)":"1px solid "+D.divider,
+                        borderRadius:D.r10,
+                        display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
+                        cursor:future?"default":"pointer",
+                        opacity:future?0.25:1,
+                        transition:"all 0.15s",
+                        position:"relative",
+                        boxShadow:full?"0 2px 8px rgba(53,193,139,0.15)":isCur?"0 2px 8px rgba(214,178,94,0.1)":"none",
+                      }}>
+                      <div style={{
+                        fontSize:15,fontWeight:isCur||full?700:500,lineHeight:1,
+                        color:full?D.success:isCur?D.brand:partial?"rgba(255,255,255,0.8)":D.textTert,
+                      }}>{dn}</div>
+                      {/* Core 4 dot indicators for partial days */}
+                      {partial&&(
+                        <div style={{display:"flex",gap:2,marginTop:4}}>
+                          {CORE4.map(c=>(
+                            <div key={c.id} style={{width:4,height:4,borderRadius:"50%",background:log[c.id]?D.brand:"rgba(255,255,255,0.12)",transition:"background 0.2s"}}/>
+                          ))}
+                        </div>
+                      )}
+                      {full&&<div style={{fontSize:10,marginTop:3,color:D.success}}>✓</div>}
                     </div>
                   );
                 })}
               </div>
-              <div style={{marginTop:12,fontSize:12,color:D.textTert,textAlign:"center"}}>Tap any past day to check in · Green = full Power Hour</div>
+
+              {/* Tap hint */}
+              <div style={{marginTop:16,textAlign:"center",fontSize:12,color:D.textTert}}>
+                Tap any past day to log or edit
+              </div>
             </div>
           );
         })()}
 
-        {/* LEADERBOARD */}
+{/* LEADERBOARD */}
         {screen==="leaderboard"&&(
           <LeaderboardScreen
             leaderboard={leaderboard}
