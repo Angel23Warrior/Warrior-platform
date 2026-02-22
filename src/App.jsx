@@ -57,6 +57,7 @@ export default function App(){
   const [calMonth,setCalMonth]=useState(new Date().getMonth());
   const [showConfetti,setShowConfetti]=useState(false);
   const [showAddGoal,setShowAddGoal]=useState(false);
+  const [dataLoaded,setDataLoaded]=useState(false);
   const [authMode,setAuthMode]=useState("login");
   const [email,setEmail]=useState("");
   const [password,setPassword]=useState("");
@@ -92,6 +93,7 @@ export default function App(){
     setGoalCompletions(gc||[]);
     await loadLeaderboard();
     await loadEditRequests(uid);
+    setDataLoaded(true);
   }
 
   async function loadLeaderboard(){
@@ -263,7 +265,7 @@ export default function App(){
             )}
 
             {/* First time empty state */}
-            {allLogs.length===0&&selectedDate===todayStr()&&(
+            {dataLoaded&&allLogs.length===0&&selectedDate===todayStr()&&(
               <div style={{background:"linear-gradient(135deg,rgba(214,178,94,0.08),rgba(53,193,139,0.05))",borderRadius:D.r16,padding:"24px 20px",marginBottom:16,border:"1px solid rgba(214,178,94,0.2)",textAlign:"center",animation:"fadeUp 0.5s ease both"}}>
                 <div style={{fontSize:28,marginBottom:10}}>⚔️</div>
                 <div style={{fontSize:18,fontWeight:700,color:D.textPrimary,fontFamily:FF,letterSpacing:1,marginBottom:6}}>Welcome to the Arena</div>
