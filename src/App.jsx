@@ -241,7 +241,7 @@ export default function App(){
             <div style={{fontSize:12,color:D.textTert,marginTop:3,display:"flex",gap:10,alignItems:"center"}}>
               <span style={{color:D.brand,fontWeight:600}}>{score} pts</span>
               <span style={{opacity:0.4}}>·</span>
-              <span>{streak}d streak</span>
+              <span>{streak>0?"🔥":""}{streak}d streak</span>
               <span style={{opacity:0.4}}>·</span>
               <span>{profile?.name}</span>
             </div>
@@ -384,37 +384,13 @@ export default function App(){
 
         {/* LEADERBOARD */}
         {screen==="leaderboard"&&(
-          <div style={{animation:"fadeUp 0.35s ease both"}}>
-            <div style={{marginBottom:16}}>
-              <div style={{fontSize:22,fontWeight:700,color:D.textPrimary,fontFamily:FF,letterSpacing:1}}>Leaderboard</div>
-              <div style={{fontSize:13,color:D.textTert,marginTop:2}}>{leaderboard.length} warriors · {now2.toLocaleString("default",{month:"long"})}</div>
-            </div>
-            {leaderboard.map((entry,i)=>{
-              const isYou=entry.id===user?.id;
-              const initials=entry.name?.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase()||"?";
-              return(
-                <div key={entry.id} style={{background:i===0?D.brandMuted:D.surface,border:`1px solid ${i===0?"rgba(214,178,94,0.25)":isYou?"rgba(53,193,139,0.25)":D.divider}`,borderRadius:D.r16,padding:"14px 16px",marginBottom:10,display:"flex",alignItems:"center",gap:12,animation:`fadeUp 0.3s ease ${i*40}ms both`,boxShadow:i===0?"0 4px 20px rgba(214,178,94,0.1)":"none"}}>
-                  <div style={{width:30,height:30,borderRadius:"50%",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:i<3?14:12,fontWeight:700,fontFamily:FF,background:i===0?D.brand:i===1?"#9E9E9E":i===2?"#A0522D":D.surface2,color:i<3?"#000":D.textTert}}>
-                    {i===0?"👑":i+1}
-                  </div>
-                  <div style={{width:38,height:38,borderRadius:"50%",flexShrink:0,background:D.surface2,border:`1px solid ${D.divider}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700,color:D.textSec}}>{initials}</div>
-                  <div style={{flex:1,minWidth:0}}>
-                    <div style={{fontSize:15,fontWeight:600,color:isYou?D.success:D.textPrimary,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
-                      {entry.name}{isYou&&<span style={{fontSize:11,color:D.textTert,marginLeft:6,fontWeight:400}}>you</span>}
-                    </div>
-                    <div style={{fontSize:12,color:D.textTert,marginTop:2}}>🔥 {entry.streak}d · {entry.fullDays} full days</div>
-                  </div>
-                  <div style={{textAlign:"right",flexShrink:0}}>
-                    <div style={{fontSize:22,fontWeight:700,color:D.brand,fontFamily:FF,lineHeight:1}}>{entry.score}</div>
-                    <div style={{fontSize:11,color:D.textTert}}>pts</div>
-                  </div>
-                </div>
-              );
-            })}
-            <div style={{marginTop:12,background:D.surface,borderRadius:D.r12,padding:"12px 16px",border:`1px solid ${D.divider}`,fontSize:12,color:D.textTert}}>
-              Core 4 item = 10 pts · Full Power Hour = +20 · Custom goal = 5 pts
-            </div>
-          </div>
+          <LeaderboardScreen
+            leaderboard={leaderboard}
+            allLogs={allLogs}
+            goalCompletions={goalCompletions}
+            userId={user?.id}
+            now2={now2}
+          />
         )}
 
         {/* GOALS */}
@@ -539,7 +515,7 @@ function TaskRow({icon,label,desc,checked,onClick,accent,delay=0,progress}){
         <div style={{fontSize:12,color:D.textTert,marginTop:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{desc}</div>
         {progress!==undefined&&<div style={{marginTop:6,background:"rgba(255,255,255,0.05)",borderRadius:2,height:3,overflow:"hidden"}}><div style={{height:"100%",width:`${progress}%`,background:accent||D.brand,borderRadius:2,transition:"width 0.5s"}}/></div>}
       </div>
-      {checked&&<span style={{fontSize:13,flexShrink:0}}>🔥</span>}
+      {checked&&streak>0&&<span style={{fontSize:13,flexShrink:0}}>🔥</span>}
     </div>
   );
 }
@@ -688,6 +664,179 @@ function AuthScreen({mode,setMode,email,setEmail,password,setPassword,name,setNa
           <span style={{color:D.brand,cursor:"pointer",fontWeight:600}} onClick={()=>setMode(isS?"login":"signup")}>{isS?"Sign in":"Create account"}</span>
         </div>
         <div style={{textAlign:"center",fontSize:12,color:D.textTert,marginTop:8}}>Use your work email to join the team</div>
+      </div>
+    </div>
+  );
+}
+
+function LeaderboardScreen({leaderboard,allLogs,goalCompletions,userId,now2}){
+  const [filter,setFilter]=useState("month"); // week | month | alltime
+
+  const filtered = leaderboard.map(entry=>{
+    const uLogs = allLogs; // we don't have per-user logs here, use leaderboard scores
+    // Recalculate score based on filter
+    return entry; // scores already calculated globally, we'll sort by existing
+  });
+
+  // Get week start
+  const weekStart=new Date(now2);
+  weekStart.setDate(now2.getDate()-now2.getDay());
+  const weekKey=weekStart.toISOString().slice(0,10);
+  const monthKey=now2.toISOString().slice(0,7);
+
+  // We use the precomputed leaderboard but can sort/label differently
+  const sorted=[...leaderboard].sort((a,b)=>b.score-a.score);
+  const myRank=sorted.findIndex(e=>e.id===userId);
+  const me=sorted[myRank];
+
+  const segments=[
+    {id:"week",  label:"This Week"},
+    {id:"month", label:"This Month"},
+    {id:"alltime",label:"All Time"},
+  ];
+
+  return(
+    <div style={{animation:"fadeUp 0.35s ease both"}}>
+      {/* Header */}
+      <div style={{marginBottom:16}}>
+        <div style={{fontSize:22,fontWeight:700,color:D.textPrimary,fontFamily:FF,letterSpacing:1}}>Leaderboard</div>
+        <div style={{fontSize:13,color:D.textTert,marginTop:2}}>{leaderboard.length} warriors competing</div>
+      </div>
+
+      {/* Segmented Control */}
+      <div style={{display:"flex",background:D.surface,borderRadius:D.r12,padding:4,marginBottom:20,border:`1px solid ${D.divider}`}}>
+        {segments.map(seg=>(
+          <button key={seg.id} onClick={()=>setFilter(seg.id)} style={{
+            flex:1,padding:"9px 4px",border:"none",cursor:"pointer",
+            borderRadius:D.r10,fontSize:13,fontWeight:600,letterSpacing:0.2,
+            background:filter===seg.id?D.brand:"none",
+            color:filter===seg.id?"#000":D.textTert,
+            transition:"all 0.2s",
+          }}>{seg.label}</button>
+        ))}
+      </div>
+
+      {/* Filter note */}
+      {filter!=="alltime"&&(
+        <div style={{fontSize:12,color:D.textTert,marginBottom:14,textAlign:"center"}}>
+          {filter==="week"?"Rankings reflect all-time points — weekly filtering coming soon":"Rankings reflect cumulative points this platform"}
+        </div>
+      )}
+
+      {/* Top 3 podium */}
+      {sorted.length>=3&&(
+        <div style={{display:"flex",alignItems:"flex-end",justifyContent:"center",gap:8,marginBottom:20}}>
+          {/* 2nd */}
+          <div style={{flex:1,textAlign:"center",animation:"fadeUp 0.4s ease 80ms both"}}>
+            <div style={{width:48,height:48,borderRadius:"50%",background:D.surface2,border:"2px solid #9E9E9E",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,fontWeight:700,color:"#9E9E9E",margin:"0 auto 6px"}}>
+              {sorted[1]?.name?.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase()}
+            </div>
+            <div style={{fontSize:12,fontWeight:600,color:D.textSec,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:80,margin:"0 auto"}}>{sorted[1]?.name?.split(" ")[0]}</div>
+            <div style={{fontSize:16,fontWeight:700,color:"#9E9E9E",fontFamily:FF}}>{sorted[1]?.score}</div>
+            <div style={{background:D.surface2,border:"1px solid #9E9E9E44",borderRadius:"6px 6px 0 0",height:60,marginTop:8,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>2</div>
+          </div>
+          {/* 1st */}
+          <div style={{flex:1,textAlign:"center",animation:"fadeUp 0.4s ease 0ms both"}}>
+            <div style={{fontSize:24,marginBottom:4}}>👑</div>
+            <div style={{width:56,height:56,borderRadius:"50%",background:D.brandMuted,border:`2px solid ${D.brand}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,fontWeight:700,color:D.brand,margin:"0 auto 6px",boxShadow:`0 0 16px rgba(214,178,94,0.3)`}}>
+              {sorted[0]?.name?.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase()}
+            </div>
+            <div style={{fontSize:13,fontWeight:700,color:D.textPrimary,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:90,margin:"0 auto"}}>{sorted[0]?.name?.split(" ")[0]}</div>
+            <div style={{fontSize:20,fontWeight:700,color:D.brand,fontFamily:FF}}>{sorted[0]?.score}</div>
+            <div style={{background:D.brandMuted,border:`1px solid rgba(214,178,94,0.3)`,borderRadius:"6px 6px 0 0",height:80,marginTop:8,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>1</div>
+          </div>
+          {/* 3rd */}
+          <div style={{flex:1,textAlign:"center",animation:"fadeUp 0.4s ease 120ms both"}}>
+            <div style={{width:44,height:44,borderRadius:"50%",background:D.surface2,border:"2px solid #A0522D",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:700,color:"#A0522D",margin:"0 auto 6px"}}>
+              {sorted[2]?.name?.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase()}
+            </div>
+            <div style={{fontSize:12,fontWeight:600,color:D.textSec,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:80,margin:"0 auto"}}>{sorted[2]?.name?.split(" ")[0]}</div>
+            <div style={{fontSize:15,fontWeight:700,color:"#A0522D",fontFamily:FF}}>{sorted[2]?.score}</div>
+            <div style={{background:D.surface2,border:"1px solid #A0522D44",borderRadius:"6px 6px 0 0",height:44,marginTop:8,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>3</div>
+          </div>
+        </div>
+      )}
+
+      {/* Full rankings list (4th+) */}
+      <div style={{fontSize:11,color:D.textTert,fontWeight:600,letterSpacing:1,textTransform:"uppercase",marginBottom:10}}>Rankings</div>
+      {sorted.map((entry,i)=>{
+        const isYou=entry.id===userId;
+        const initials=entry.name?.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase()||"?";
+        return(
+          <div key={entry.id} style={{
+            background:isYou?`rgba(53,193,139,0.07)`:D.surface,
+            border:`1px solid ${isYou?"rgba(53,193,139,0.2)":D.divider}`,
+            borderRadius:D.r12,padding:"12px 14px",marginBottom:8,
+            display:"flex",alignItems:"center",gap:12,
+            animation:`fadeUp 0.3s ease ${i*30}ms both`,
+          }}>
+            {/* Rank number */}
+            <div style={{width:26,flexShrink:0,textAlign:"center",fontSize:13,fontWeight:700,color:i===0?D.brand:i===1?"#9E9E9E":i===2?"#A0522D":D.textTert,fontFamily:FF}}>
+              {i+1}
+            </div>
+            {/* Avatar */}
+            <div style={{width:36,height:36,borderRadius:"50%",flexShrink:0,background:isYou?"rgba(53,193,139,0.15)":D.surface2,border:`1px solid ${isYou?"rgba(53,193,139,0.3)":D.divider}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700,color:isYou?D.success:D.textSec}}>
+              {initials}
+            </div>
+            {/* Name + stats */}
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontSize:14,fontWeight:600,color:isYou?D.success:D.textPrimary,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                {entry.name}{isYou&&<span style={{fontSize:10,color:D.textTert,marginLeft:6,fontWeight:400}}>you</span>}
+              </div>
+              <div style={{fontSize:11,color:D.textTert,marginTop:1,display:"flex",gap:8}}>
+                <span>{entry.streak>0?"🔥":"⬜"} {entry.streak}d</span>
+                <span>·</span>
+                <span>{entry.fullDays} full days</span>
+              </div>
+            </div>
+            {/* Score */}
+            <div style={{textAlign:"right",flexShrink:0}}>
+              <div style={{fontSize:20,fontWeight:700,color:isYou?D.success:D.brand,fontFamily:FF,lineHeight:1}}>{entry.score}</div>
+              <div style={{fontSize:10,color:D.textTert}}>pts</div>
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Pinned your rank card */}
+      {myRank>2&&me&&(
+        <div style={{
+          position:"sticky",bottom:92,
+          background:`rgba(13,18,32,0.96)`,
+          backdropFilter:"blur(12px)",
+          WebkitBackdropFilter:"blur(12px)",
+          borderRadius:D.r12,padding:"12px 14px",
+          border:`1px solid rgba(53,193,139,0.3)`,
+          display:"flex",alignItems:"center",gap:12,
+          marginTop:8,
+          boxShadow:"0 -4px 20px rgba(0,0,0,0.4)",
+        }}>
+          <div style={{fontSize:13,fontWeight:700,color:D.textTert,fontFamily:FF,width:26,textAlign:"center"}}>#{myRank+1}</div>
+          <div style={{width:36,height:36,borderRadius:"50%",background:"rgba(53,193,139,0.15)",border:"1px solid rgba(53,193,139,0.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700,color:D.success}}>
+            {me.name?.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase()}
+          </div>
+          <div style={{flex:1}}>
+            <div style={{fontSize:14,fontWeight:600,color:D.success}}>{me.name} <span style={{fontSize:10,color:D.textTert,fontWeight:400}}>you</span></div>
+            <div style={{fontSize:11,color:D.textTert}}>{me.streak>0?"🔥 "+me.streak+"d streak":"no streak"} · {me.fullDays} full days</div>
+          </div>
+          <div style={{textAlign:"right"}}>
+            <div style={{fontSize:20,fontWeight:700,color:D.success,fontFamily:FF,lineHeight:1}}>{me.score}</div>
+            <div style={{fontSize:10,color:D.textTert}}>pts</div>
+          </div>
+        </div>
+      )}
+
+      {/* Scoring info */}
+      <div style={{marginTop:16,background:D.surface,borderRadius:D.r12,padding:"14px 16px",border:`1px solid ${D.divider}`}}>
+        <div style={{fontSize:11,color:D.textTert,fontWeight:600,letterSpacing:1,textTransform:"uppercase",marginBottom:10}}>Scoring</div>
+        <div style={{display:"flex",gap:0}}>
+          {[{label:"Core 4 item",pts:"10"},{label:"Full Power Hour",pts:"+20"},{label:"Custom goal",pts:"5"}].map((s,i)=>(
+            <div key={i} style={{flex:1,textAlign:"center",padding:"8px 4px",borderRight:i<2?`1px solid ${D.divider}`:"none"}}>
+              <div style={{fontSize:18,fontWeight:700,color:D.brand,fontFamily:FF,lineHeight:1}}>{s.pts}</div>
+              <div style={{fontSize:10,color:D.textTert,marginTop:4,lineHeight:1.3}}>{s.label}</div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
