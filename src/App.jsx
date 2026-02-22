@@ -80,6 +80,8 @@ export default function WarriorPlatform() {
   const [password, setPassword]   = useState("");
   const [name, setName]           = useState("");
   const [authError, setAuthError] = useState("");
+  const [calYear, setCalYear]     = useState(new Date().getFullYear());
+  const [calMonth, setCalMonth]   = useState(new Date().getMonth());
   const [darkMode, setDarkMode]   = useState(() => {
     try { return localStorage.getItem("warrior-dark") === "true"; } catch { return false; }
   });
@@ -321,62 +323,55 @@ export default function WarriorPlatform() {
         )}
 
         {/* ── MONTHLY CALENDAR ── */}
-        {screen==="calendar"&&(()=>{
+        {screen==="calendar" && (() => {
           const now = new Date();
-          const [calYear, setCalYear] = useState(now.getFullYear());
-          const [calMonth, setCalMonth] = useState(now.getMonth());
           const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
           const firstDayOfWeek = new Date(calYear, calMonth, 1).getDay();
-          const monthName = new Date(calYear, calMonth, 1).toLocaleString('default',{month:'long'});
+          const monthName = new Date(calYear, calMonth, 1).toLocaleString('default', { month:'long' });
           const DAY_LABELS = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+          const monthKey = `${calYear}-${String(calMonth+1).padStart(2,'0')}`;
+          const fullThisMonth = allLogs.filter(l=>l.log_date.startsWith(monthKey)&&l.movement&&l.god&&l.vanity&&l.business).length;
+          const isCurrentMonth = calYear===now.getFullYear()&&calMonth===now.getMonth();
 
-          return(
+          const prevMonth = () => { if(calMonth===0){setCalMonth(11);setCalYear(y=>y-1);}else setCalMonth(m=>m-1); };
+          const nextMonth = () => { if(calMonth===11){setCalMonth(0);setCalYear(y=>y+1);}else setCalMonth(m=>m+1); };
+
+          return (
             <div>
               <SectionHeader T={T}>📅 {monthName} {calYear}</SectionHeader>
               {/* Month nav */}
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
-                <button onClick={()=>{ if(calMonth===0){setCalMonth(11);setCalYear(y=>y-1);}else setCalMonth(m=>m-1); }}
-                  style={{ background:"none", border:`1px solid ${T.cardBorder}`, color:T.text, padding:"6px 14px", borderRadius:4, cursor:"pointer", fontFamily:MF, fontSize:14, letterSpacing:1 }}>← PREV</button>
-                <div style={{ fontSize:11, color:T.textSub, fontFamily:MF, letterSpacing:2 }}>
-                  {allLogs.filter(l=>l.log_date.startsWith(`${calYear}-${String(calMonth+1).padStart(2,'0')}`)).filter(l=>l.movement&&l.god&&l.vanity&&l.business).length} FULL DAYS THIS MONTH
-                </div>
-                <button onClick={()=>{ if(calMonth===11){setCalMonth(0);setCalYear(y=>y+1);}else setCalMonth(m=>m+1); }}
-                  disabled={calYear===now.getFullYear()&&calMonth===now.getMonth()}
-                  style={{ background:"none", border:`1px solid ${T.cardBorder}`, color:T.text, padding:"6px 14px", borderRadius:4, cursor:"pointer", fontFamily:MF, fontSize:14, letterSpacing:1, opacity:calYear===now.getFullYear()&&calMonth===now.getMonth()?0.3:1 }}>NEXT →</button>
+                <button onClick={prevMonth} style={{ background:"none", border:`1px solid ${T.cardBorder}`, color:T.text, padding:"6px 14px", borderRadius:4, cursor:"pointer", fontFamily:MF, fontSize:14, letterSpacing:1 }}>← PREV</button>
+                <div style={{ fontSize:11, color:T.textSub, fontFamily:MF, letterSpacing:2 }}>{fullThisMonth} FULL DAYS</div>
+                <button onClick={nextMonth} disabled={isCurrentMonth} style={{ background:"none", border:`1px solid ${T.cardBorder}`, color:T.text, padding:"6px 14px", borderRadius:4, cursor:"pointer", fontFamily:MF, fontSize:14, letterSpacing:1, opacity:isCurrentMonth?0.3:1 }}>NEXT →</button>
               </div>
-
-              {/* Day-of-week headers */}
+              {/* Day headers */}
               <div style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:4, marginBottom:4 }}>
                 {DAY_LABELS.map(d=>(
                   <div key={d} style={{ textAlign:"center", fontSize:10, color:T.textSub, fontFamily:MF, letterSpacing:1, padding:"4px 0" }}>{d}</div>
                 ))}
               </div>
-
-              {/* Calendar grid */}
+              {/* Grid */}
               <div style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:4 }}>
-                {/* Empty cells for first week offset */}
-                {Array.from({length:firstDayOfWeek},(_,i)=>(
-                  <div key={`empty-${i}`} />
-                ))}
+                {Array.from({length:firstDayOfWeek},(_,i)=><div key={`e${i}`} />)}
                 {Array.from({length:daysInMonth},(_,i)=>{
                   const dayNum = i+1;
                   const key = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(dayNum).padStart(2,'0')}`;
                   const log = allLogs.find(l=>l.log_date===key)||{};
-                  const done = ["movement","god","vanity","business"].filter(f=>log[f]).length;
-                  const full = done===4;
+                  const full = ["movement","god","vanity","business"].every(f=>log[f]);
                   const isCurrent = key===todayStr();
                   const future = key>todayStr();
                   const isWeekend = [0,6].includes(new Date(calYear,calMonth,dayNum).getDay());
                   return(
-                    <div key={dayNum} onClick={()=>{ if(!future){ setScreen("dashboard"); }}} style={{
-                      background: full?(darkMode?"linear-gradient(135deg,#1a3010,#253a10)":"linear-gradient(135deg,#e8f5e8,#d0ead0)"):future?T.futureCard:T.card,
-                      border: isCurrent?"2px solid #c9a84c":full?"1px solid #4a7a20":`1px solid ${T.cardBorder}`,
+                    <div key={dayNum} onClick={()=>!future&&setScreen("dashboard")} style={{
+                      background:full?(darkMode?"linear-gradient(135deg,#1a3010,#253a10)":"linear-gradient(135deg,#e8f5e8,#d0ead0)"):future?T.futureCard:T.card,
+                      border:isCurrent?"2px solid #c9a84c":full?"1px solid #4a7a20":`1px solid ${T.cardBorder}`,
                       borderRadius:6, padding:"8px 2px", textAlign:"center",
-                      cursor:future?"default":"pointer", opacity:future?0.35:1,
-                      transition:"background 0.3s",
+                      cursor:future?"default":"pointer", opacity:future?0.35:1, transition:"background 0.3s",
                     }}>
-                      <div style={{ fontSize:14, fontWeight:700, color:isCurrent?"#c9a84c":full?"#4caf50":isWeekend?"#8a9ab5":T.text, fontFamily:MF, lineHeight:1, marginBottom:4 }}>{dayNum}</div>
-                      <div style={{ display:"flex", gap:2, justifyContent:"center", flexWrap:"wrap" }}>
+                      <div style={{ fontSize:14, fontWeight:700, fontFamily:MF, lineHeight:1, marginBottom:4,
+                        color:isCurrent?"#c9a84c":full?"#4caf50":isWeekend?"#8a9ab5":T.text }}>{dayNum}</div>
+                      <div style={{ display:"flex", gap:2, justifyContent:"center" }}>
                         {CORE4.map(c=>(
                           <div key={c.id} style={{ width:4, height:4, borderRadius:"50%", background:log[c.id]?"#c9a84c":T.progressBg }} />
                         ))}
@@ -385,12 +380,8 @@ export default function WarriorPlatform() {
                   );
                 })}
               </div>
-
-              {/* Legend */}
               <div style={{ marginTop:16, display:"flex", gap:16, fontSize:11, color:T.textSub, flexWrap:"wrap" }}>
-                <span>🟡 dots = Core 4 items</span>
-                <span>🟢 green = full day</span>
-                <span>🟡 gold border = today</span>
+                <span>🟡 dots = Core 4 items</span><span>🟢 green = full day</span><span>🟡 border = today</span>
               </div>
             </div>
           );
