@@ -32,6 +32,7 @@ import { WW_LOGO, B49_LOGO } from "./logos.js";
 const SUPABASE_URL = "https://ntcsjtyiefusaqsehgfl.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im50Y3NqdHlpZWZ1c2Fxc2VoZ2ZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3MjU4MzcsImV4cCI6MjA4NzMwMTgzN30.NRlzdtfR6BiEwZGRe5VJKVlo8i5-qmI9cmUkzHgTgV8";
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const VAPID_PUBLIC_KEY="BFbCqotZRf28v2w06_16CAunMYhHC7l0ZA9GjI6I4NKT94OmQzVUrP23lFzBwthMTV2GjC1wgeJGBoDAIwl82Bc";
 
 const D = {
   bg:"#070A0F", surface:"#0D1220", surface2:"#111A2D",
@@ -96,6 +97,35 @@ const GS=()=>(
   `}</style>
 );
 
+function PushToggle({registerPush}){
+  const [enabled,setEnabled]=useState(false);
+  const [loading,setLoading]=useState(false);
+  useEffect(()=>{
+    if("Notification" in window)setEnabled(Notification.permission==="granted");
+  },[]);
+  async function toggle(){
+    if(enabled)return; // can't programmatically disable, direct to settings
+    setLoading(true);
+    const ok=await registerPush();
+    setEnabled(ok);
+    setLoading(false);
+  }
+  return(
+    <button onClick={toggle} disabled={loading} style={{
+      width:44,height:26,borderRadius:13,border:"none",cursor:enabled?"default":"pointer",
+      background:enabled?"rgba(53,193,139,0.9)":"rgba(255,255,255,0.1)",
+      position:"relative",transition:"background 0.2s",flexShrink:0,
+    }}>
+      <div style={{
+        width:20,height:20,borderRadius:"50%",background:"#fff",
+        position:"absolute",top:3,transition:"left 0.2s",
+        left:enabled?21:3,
+        boxShadow:"0 1px 3px rgba(0,0,0,0.3)"
+      }}/>
+    </button>
+  );
+}
+
 export default function App(){
   const [screen,setScreen]=useState("loading");
   const [user,setUser]=useState(null);
@@ -128,13 +158,21 @@ export default function App(){
       if(session?.user){
         setUser(session.user);
         await loadUserData(session.user.id);
+        // Register service worker
+        if("serviceWorker" in navigator){
+          navigator.serviceWorker.register("/sw.js").catch(e=>console.log("SW reg failed:",e));
+        }
         setScreen("dashboard");
       } else {
         setScreen("login");
       }
     });
     const {data:{subscription}}=supabase.auth.onAuthStateChange((_e,session)=>{
-      if(session?.user){setUser(session.user);loadUserData(session.user.id);setScreen("dashboard");}
+      if(session?.user){setUser(session.user);loadUserData(session.user.id);
+        // Register service worker
+        if("serviceWorker" in navigator){
+          navigator.serviceWorker.register("/sw.js").catch(e=>console.log("SW reg failed:",e));
+        }setScreen("dashboard");}
       else{setUser(null);setScreen("login");}
     });
     return()=>subscription.unsubscribe();
@@ -170,6 +208,41 @@ export default function App(){
       return{...p,score:s,streak,fullDays:uL.filter(l=>l.movement&&l.god&&l.vanity&&l.business).length};
     });
     setLeaderboard(board.sort((a,b)=>b.score-a.score));
+  }
+
+  async function registerPush(){
+    if(!("serviceWorker" in navigator)||!("PushManager" in window)){
+      alert("Push notifications not supported on this device/browser.");
+      return false;
+    }
+    try{
+      const reg=await navigator.serviceWorker.ready;
+      const permission=await Notification.requestPermission();
+      if(permission!=="granted"){return false;}
+      const sub=await reg.pushManager.subscribe({
+        userVisibleOnly:true,
+        applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+      await supabase.from("push_subscriptions").upsert({user_id:user.id,subscription:sub.toJSON()},{onConflict:"user_id"});
+      return true;
+    }catch(e){
+      console.error("Push registration failed:",e);
+      return false;
+    }
+  }
+
+  async function checkPushEnabled(){
+    if(!("serviceWorker" in navigator))return false;
+    const reg=await navigator.serviceWorker.getRegistration();
+    if(!reg)return false;
+    const sub=await reg.pushManager.getSubscription();
+    return !!sub;
+  }
+
+  async function sendPushToUser(userId, title, body, url="/"){
+    try{
+      await supabase.functions.invoke("send-push",{body:{user_id:userId,title,body,url}});
+    }catch(e){console.error("Push send failed:",e);}
   }
 
   async function loadEditRequests(uid){
@@ -608,7 +681,13 @@ export default function App(){
               </div>
             </SettingsGroup>
 
-            <button onClick={handleLogout} style={{width:"100%",padding:15,marginTop:8,background:"none",border:`1px solid rgba(255,90,95,0.3)`,color:D.danger,borderRadius:D.r12,cursor:"pointer",fontSize:15,fontWeight:600}}>Sign Out</button>
+            <SettingsGroup label="Notifications">
+              <SettingsRow label="Push Notifications" desc="Get notified when requests are approved or denied">
+                <PushToggle registerPush={registerPush}/>
+              </SettingsRow>
+            </SettingsGroup>
+
+            <button onClick={handleLogout} style={{width:"100%",padding:15,marginTop:8,background:"none",border:"1px solid rgba(255,90,95,0.3)",color:D.danger,borderRadius:D.r12,cursor:"pointer",fontSize:15,fontWeight:600}}>Sign Out</button>
           </div>
         )}
 
