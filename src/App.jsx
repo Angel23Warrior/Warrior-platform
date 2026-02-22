@@ -17,7 +17,7 @@ const Sunrise=({size=18,color="currentColor",...p})=><IcMulti size={size} color=
 const Heart=({size=18,color="currentColor",...p})=><Ic size={size} color={color} d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" {...p}/>;
 const BookOpen=({size=18,color="currentColor",...p})=><IcMulti size={size} color={color} paths={["M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z","M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"]} {...p}/>;
 const Flame=({size=18,color="currentColor",...p})=><Ic size={size} color={color} d="M8.5 14.5A2.5 2.5 0 0011 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 01-7 7 7 7 0 01-7-7c0-1.507.333-2.78.5-3.5.459.683 1.5 1.5 1.5 1.5z" {...p}/>;
-const Crown=({size=18,color="currentColor",fill="none",...p})=><Ic size={size} color={color} fill={fill} d="M2 20h20M5 20V10l7-7 7 7v10" {...p}/>;
+const Crown=({size=18,color="currentColor",fill="none",...p})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}><path d="M3 18h18"/><path d="M3 18l2.5-8 4.5 3.5L12 5l2 8.5L18.5 10 21 18"/><circle cx="3" cy="10" r="1.2" fill={color} stroke="none"/><circle cx="12" cy="4" r="1.5" fill={color} stroke="none"/><circle cx="21" cy="10" r="1.2" fill={color} stroke="none"/></svg>;
 const Check=({size=18,color="currentColor",...p})=><Ic size={size} color={color} d="M20 6L9 17l-5-5" {...p}/>;
 const Plus=({size=18,color="currentColor",...p})=><IcMulti size={size} color={color} paths={["M12 5v14","M5 12h14"]} {...p}/>;
 const ChevronLeft=({size=18,color="currentColor",...p})=><Ic size={size} color={color} d="M15 18l-6-6 6-6" {...p}/>;
@@ -291,7 +291,7 @@ export default function App(){
               <span>{profile?.name}</span>
             </div>
           </div>
-          <button onClick={()=>setScreen("settings")} style={{width:36,height:36,borderRadius:"50%",border:`1px solid ${D.divider}`,background:D.surface,color:D.textSec,cursor:"pointer",fontSize:15,display:"flex",alignItems:"center",justifyContent:"center"}}>⚙️</button>
+          <button onClick={()=>setScreen("settings")} style={{width:38,height:38,borderRadius:"50%",border:"1px solid "+D.divider,background:D.surface,color:D.textSec,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Settings size={17}/></button>
         </div>
       </div>
 
