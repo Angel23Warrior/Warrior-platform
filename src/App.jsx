@@ -264,9 +264,30 @@ export default function App(){
 
             {/* Progress Ring Card */}
             <div style={{background:D.surface,borderRadius:D.r16,padding:"28px 20px 24px",marginBottom:16,textAlign:"center",boxShadow:"0 10px 30px rgba(0,0,0,0.35)",border:`1px solid ${D.divider}`}}>
-              <ProgressRing pct={ringPct} done={core4Done}/>
+              <ProgressRing
+                pct={ringPct}
+                done={core4Done}
+                goalPct={(()=>{
+                  const todayGoalDone=goalCompletions.filter(gc=>gc.completion_date===selectedDate).length;
+                  return goals.length>0?Math.round((todayGoalDone/goals.length)*100):0;
+                })()}
+                monthPct={monthPct}
+              />
               <div style={{fontSize:14,color:D.textSec,marginTop:14,letterSpacing:0.2}}>
                 {core4Done===4?"🔥 You won today.":core4Done===0?"Core 4. No excuses.":"Keep going. Win the day."}
+              </div>
+              {/* Ring legend */}
+              <div style={{display:"flex",justifyContent:"center",gap:16,marginTop:12}}>
+                {[
+                  {color:ringPct===100?D.success:D.brand, label:"Core 4"},
+                  {color:"#4A9EF5", label:"Goals today"},
+                  {color:"#E06FBF", label:"Month"},
+                ].map(l=>(
+                  <div key={l.label} style={{display:"flex",alignItems:"center",gap:5}}>
+                    <div style={{width:8,height:8,borderRadius:"50%",background:l.color,boxShadow:`0 0 4px ${l.color}`}}/>
+                    <span style={{fontSize:11,color:D.textTert}}>{l.label}</span>
+                  </div>
+                ))}
               </div>
               <div style={{display:"flex",justifyContent:"center",gap:10,marginTop:18,flexWrap:"wrap"}}>
                 {[{label:"pts",value:score},{label:"streak",value:`${streak}d`},{label:"logged",value:`${allLogs.length}d`}].map(s=>(
@@ -488,17 +509,44 @@ export default function App(){
   );
 }
 
-function ProgressRing({pct,done}){
-  const r=90,circ=2*Math.PI*r,offset=circ*(1-pct/100);
+function ProgressRing({pct,done,goalPct,monthPct}){
+  // Three rings: outer=Core4, middle=goals today, inner=month
+  const rings=[
+    {r:86, color:pct===100?D.success:D.brand,      glow:pct===100?"rgba(53,193,139,0.8)":"rgba(214,178,94,0.6)",   pct,      sw:13},
+    {r:66, color:"#4A9EF5",                          glow:"rgba(74,158,245,0.6)",                                    pct:goalPct, sw:11},
+    {r:48, color:"#E06FBF",                          glow:"rgba(224,111,191,0.6)",                                   pct:monthPct,sw:10},
+  ];
   return(
-    <div style={{position:"relative",width:"min(200px, 52vw)",height:"min(200px, 52vw)",margin:"0 auto"}}>
+    <div style={{position:"relative",width:"min(220px,58vw)",height:"min(220px,58vw)",margin:"0 auto"}}>
       <svg width="100%" height="100%" viewBox="0 0 200 200" style={{transform:"rotate(-90deg)"}}>
-        <circle cx="100" cy="100" r={r} fill="none" stroke={D.bg} strokeWidth="14"/>
-        <circle cx="100" cy="100" r={r} fill="none" stroke={pct===100?D.success:D.brand} strokeWidth="14" strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={offset} style={{transition:"stroke-dashoffset 0.6s cubic-bezier(0.4,0,0.2,1)",filter:pct===100?"drop-shadow(0 0 8px rgba(53,193,139,0.8))":"drop-shadow(0 0 6px rgba(214,178,94,0.6))"}}/>
+        {rings.map((ring,i)=>{
+          const circ=2*Math.PI*ring.r;
+          const offset=circ*(1-(ring.pct||0)/100);
+          return(
+            <g key={i}>
+              {/* Track */}
+              <circle cx="100" cy="100" r={ring.r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={ring.sw}/>
+              {/* Fill */}
+              <circle cx="100" cy="100" r={ring.r} fill="none"
+                stroke={ring.color} strokeWidth={ring.sw}
+                strokeLinecap="round"
+                strokeDasharray={circ}
+                strokeDashoffset={offset}
+                style={{
+                  transition:"stroke-dashoffset 0.7s cubic-bezier(0.4,0,0.2,1)",
+                  filter:`drop-shadow(0 0 5px ${ring.glow})`,
+                }}
+              />
+            </g>
+          );
+        })}
       </svg>
-      <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
-        <div style={{fontSize:44,fontWeight:700,color:pct===100?D.success:D.textPrimary,fontFamily:FF,lineHeight:1,animation:pct===100?"popIn 0.4s ease both":"none"}}>{done}/4</div>
-        <div style={{fontSize:12,color:D.textTert,marginTop:4,letterSpacing:0.5}}>{pct===100?"Complete ✓":"Core 4"}</div>
+      {/* Center text */}
+      <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:2}}>
+        <div style={{fontSize:40,fontWeight:700,color:pct===100?D.success:D.textPrimary,fontFamily:FF,lineHeight:1,animation:pct===100?"popIn 0.4s ease both":"none"}}>
+          {done}/4
+        </div>
+        <div style={{fontSize:11,color:D.textTert,letterSpacing:0.5}}>{pct===100?"Won today ✓":"Core 4"}</div>
       </div>
     </div>
   );
