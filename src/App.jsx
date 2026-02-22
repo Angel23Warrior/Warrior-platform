@@ -726,7 +726,181 @@ function AuthScreen({ mode, setMode, email, setEmail, password, setPassword, nam
 
 // ─── Small components ─────────────────────────────────────────────────────────
 function Loader() {
-  return <div style={{ minHeight:"100vh", background:"#0d1b2a", display:"flex", alignItems:"center", justifyContent:"center", color:"#c9a84c", fontSize:14, letterSpacing:3, fontFamily:MF }}>LOADING…</div>;
+  const [dots, setDots] = useState(0);
+  const [phase, setPhase] = useState(0);
+  const phases = ["INITIALIZING", "LOADING WARRIORS", "ENTERING THE ARENA"];
+
+  useEffect(() => {
+    const dotTimer = setInterval(() => setDots(d => (d + 1) % 4), 400);
+    const phaseTimer = setInterval(() => setPhase(p => Math.min(p + 1, phases.length - 1)), 900);
+    return () => { clearInterval(dotTimer); clearInterval(phaseTimer); };
+  }, []);
+
+  return (
+    <div style={{
+      minHeight:"100vh", background:"#0d1b2a",
+      display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+      fontFamily:MF, overflow:"hidden", position:"relative",
+    }}>
+
+      <style>{`
+        @keyframes erupt {
+          0%   { transform: translateY(60px); opacity: 0; }
+          60%  { transform: translateY(-12px); opacity: 1; }
+          80%  { transform: translateY(6px); }
+          100% { transform: translateY(0px); opacity: 1; }
+        }
+        @keyframes rootGrow {
+          0%   { opacity: 0; transform: scaleY(0); transform-origin: top center; }
+          100% { opacity: 1; transform: scaleY(1); transform-origin: top center; }
+        }
+        @keyframes groundPulse {
+          0%,100% { opacity: 0.5; transform: scaleX(1); }
+          50%     { opacity: 1;   transform: scaleX(1.08); }
+        }
+        @keyframes glowPulse {
+          0%,100% { filter: drop-shadow(0 0 8px #c9a84c66); }
+          50%     { filter: drop-shadow(0 0 22px #c9a84ccc); }
+        }
+        @keyframes textRise {
+          0%   { opacity:0; transform:translateY(16px); }
+          100% { opacity:1; transform:translateY(0); }
+        }
+        @keyframes barFill {
+          from { width: 0%; }
+        }
+        @keyframes dirtFly {
+          0%   { opacity:0; transform: translate(0,0) scale(0); }
+          40%  { opacity:1; }
+          100% { opacity:0; transform: translate(var(--dx), var(--dy)) scale(1.5); }
+        }
+      `}</style>
+
+      {/* Ground + eruption scene */}
+      <div style={{ position:"relative", width:240, height:280, marginBottom:24 }}>
+
+        {/* Dirt particles flying out */}
+        {[
+          {dx:"-40px", dy:"-30px", x:100, y:160},
+          {dx:"50px",  dy:"-40px", x:120, y:155},
+          {dx:"-60px", dy:"-20px", x:90,  y:170},
+          {dx:"65px",  dy:"-15px", x:135, y:165},
+          {dx:"-20px", dy:"-55px", x:108, y:150},
+          {dx:"30px",  dy:"-50px", x:115, y:148},
+        ].map((p,i)=>(
+          <div key={i} style={{
+            position:"absolute", left:p.x, top:p.y,
+            width:6, height:6, borderRadius:"50%",
+            background:"#5a3a1a",
+            "--dx":p.dx, "--dy":p.dy,
+            animation:`dirtFly 0.8s ease-out ${0.2+i*0.06}s both`,
+          }} />
+        ))}
+
+        {/* Ground crack / dirt mound */}
+        <svg viewBox="0 0 240 60" style={{
+          position:"absolute", bottom:0, left:0, width:"100%",
+          animation:"groundPulse 2s ease-in-out infinite",
+        }}>
+          {/* Ground base */}
+          <ellipse cx="120" cy="45" rx="100" ry="18" fill="#1a0e06" />
+          <ellipse cx="120" cy="42" rx="85"  ry="12" fill="#2a1a0a" />
+          {/* Crack lines */}
+          <line x1="120" y1="28" x2="90"  y2="38" stroke="#3a2010" strokeWidth="2" opacity="0.8"/>
+          <line x1="120" y1="28" x2="150" y2="36" stroke="#3a2010" strokeWidth="2" opacity="0.8"/>
+          <line x1="105" y1="33" x2="85"  y2="44" stroke="#3a2010" strokeWidth="1.5" opacity="0.6"/>
+          <line x1="135" y1="31" x2="158" y2="42" stroke="#3a2010" strokeWidth="1.5" opacity="0.6"/>
+          {/* Gold glow under break point */}
+          <ellipse cx="120" cy="30" rx="18" ry="6" fill="#c9a84c" opacity="0.15"/>
+        </svg>
+
+        {/* Roots growing down from fist */}
+        <svg viewBox="0 0 120 100" style={{
+          position:"absolute", bottom:18, left:"50%", transform:"translateX(-50%)",
+          width:120, height:100,
+          animation:"rootGrow 0.6s ease-out 0.4s both",
+        }}>
+          {/* Main roots */}
+          <path d="M60 0 Q45 30 25 55 Q15 70 10 90" stroke="#c9a84c" strokeWidth="3" fill="none" strokeLinecap="round" opacity="0.9"/>
+          <path d="M60 0 Q75 28 95 52 Q105 68 110 88" stroke="#c9a84c" strokeWidth="3" fill="none" strokeLinecap="round" opacity="0.9"/>
+          <path d="M60 0 Q58 35 55 70 Q53 82 50 95" stroke="#c9a84c" strokeWidth="2.5" fill="none" strokeLinecap="round" opacity="0.85"/>
+          {/* Branch roots */}
+          <path d="M40 35 Q28 45 18 55" stroke="#c9a84c" strokeWidth="1.8" fill="none" strokeLinecap="round" opacity="0.7"/>
+          <path d="M80 32 Q92 42 100 54" stroke="#c9a84c" strokeWidth="1.8" fill="none" strokeLinecap="round" opacity="0.7"/>
+          <path d="M35 55 Q22 62 14 72" stroke="#c9a84c" strokeWidth="1.4" fill="none" strokeLinecap="round" opacity="0.6"/>
+          <path d="M85 50 Q98 58 106 70" stroke="#c9a84c" strokeWidth="1.4" fill="none" strokeLinecap="round" opacity="0.6"/>
+          <path d="M55 65 Q46 75 40 88" stroke="#c9a84c" strokeWidth="1.2" fill="none" strokeLinecap="round" opacity="0.55"/>
+          <path d="M57 68 Q66 78 70 90" stroke="#c9a84c" strokeWidth="1.2" fill="none" strokeLinecap="round" opacity="0.55"/>
+        </svg>
+
+        {/* Fist + stick erupting upward */}
+        <div style={{
+          position:"absolute", top:0, left:"50%", transform:"translateX(-50%)",
+          animation:"erupt 0.9s cubic-bezier(0.22,1,0.36,1) 0.1s both",
+        }}>
+          <svg viewBox="0 0 160 160" width="160" height="160"
+            style={{ animation:"glowPulse 2s ease-in-out 1s infinite", filter:"drop-shadow(0 0 10px #c9a84c88)" }}>
+
+            {/* Stick / branch horizontal */}
+            <rect x="8"  y="62" width="52" height="14" rx="7" fill="#f0e8d0"/>
+            <rect x="100" y="62" width="52" height="14" rx="7" fill="#f0e8d0"/>
+            {/* Stick end details */}
+            <circle cx="12"  cy="69" r="7" fill="#e0d0b0"/>
+            <circle cx="148" cy="69" r="7" fill="#e0d0b0"/>
+
+            {/* Fist body */}
+            <rect x="52" y="54" width="56" height="52" rx="10" fill="#f5e6c8"/>
+            {/* Knuckle bumps */}
+            <rect x="55" y="50" width="12" height="16" rx="6" fill="#f0ddb8"/>
+            <rect x="70" y="47" width="13" height="18" rx="6" fill="#f0ddb8"/>
+            <rect x="86" y="48" width="12" height="17" rx="6" fill="#f0ddb8"/>
+            <rect x="100" y="51" width="10" height="15" rx="5" fill="#f0ddb8"/>
+            {/* Thumb */}
+            <ellipse cx="54" cy="74" rx="8" ry="12" fill="#f0ddb8"/>
+            {/* Finger lines */}
+            <line x1="67" y1="56" x2="67" y2="104" stroke="#d4c0a0" strokeWidth="1.5" opacity="0.5"/>
+            <line x1="82" y1="54" x2="82" y2="104" stroke="#d4c0a0" strokeWidth="1.5" opacity="0.5"/>
+            <line x1="97" y1="55" x2="97" y2="104" stroke="#d4c0a0" strokeWidth="1.5" opacity="0.5"/>
+            {/* Wrist */}
+            <rect x="60" y="100" width="40" height="20" rx="4" fill="#e8d5b0"/>
+
+            {/* 49 on fist */}
+            <text x="80" y="86" textAnchor="middle" fill="#1B3A5C"
+              style={{fontSize:22, fontWeight:900, fontFamily:"'Barlow Condensed','Oswald',sans-serif", letterSpacing:-1}}>
+              49
+            </text>
+
+            {/* Glow ring around fist */}
+            <circle cx="80" cy="80" r="74" fill="none" stroke="#c9a84c" strokeWidth="1.5" opacity="0.3"/>
+          </svg>
+        </div>
+      </div>
+
+      {/* Text */}
+      <div style={{ animation:"textRise 0.6s ease-out 0.9s both", textAlign:"center" }}>
+        <div style={{ fontSize:34, fontWeight:700, color:"#fff", letterSpacing:5, marginBottom:6, textShadow:"0 0 20px #c9a84c66" }}>
+          POWER HOUR
+        </div>
+        <div style={{ fontSize:13, color:"#c9a84c", letterSpacing:4, marginBottom:28 }}>
+          #WARRIORSWAY
+        </div>
+      </div>
+
+      {/* Phase + bar */}
+      <div style={{ animation:"textRise 0.6s ease-out 1.1s both", textAlign:"center" }}>
+        <div style={{ fontSize:11, color:"#5a7a9a", letterSpacing:3, marginBottom:12, height:18 }}>
+          {phases[phase]}{".".repeat(dots)}
+        </div>
+        <div style={{ width:180, height:2, background:"#1a2a3a", borderRadius:2, overflow:"hidden", margin:"0 auto" }}>
+          <div style={{
+            height:"100%", background:"linear-gradient(90deg,#c9a84c,#e8c96c)",
+            borderRadius:2, transition:"width 0.9s ease",
+            width:`${((phase+1)/phases.length)*100}%`,
+          }} />
+        </div>
+      </div>
+    </div>
+  );
 }
 function LogoBox({ src, alt, size=60 }) {
   return (
