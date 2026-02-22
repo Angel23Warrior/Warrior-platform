@@ -241,7 +241,7 @@ export default function App(){
             <div style={{fontSize:12,color:D.textTert,marginTop:3,display:"flex",gap:10,alignItems:"center"}}>
               <span style={{color:D.brand,fontWeight:600}}>{score} pts</span>
               <span style={{opacity:0.4}}>·</span>
-              <span>{streak>0?"🔥":""}{streak}d streak</span>
+              <span>{streak>0?"🔥 ":""}{streak}d streak</span>
               <span style={{opacity:0.4}}>·</span>
               <span>{profile?.name}</span>
             </div>
@@ -351,7 +351,7 @@ export default function App(){
           const dim=new Date(calYear,calMonth+1,0).getDate();
           const fdow=new Date(calYear,calMonth,1).getDay();
           const mname=new Date(calYear,calMonth,1).toLocaleString("default",{month:"long"});
-          const mkey=`${calYear}-${String(calMonth+1).padStart(2,"0")}`;
+          const mkey=calYear+"-"+String(calMonth+1).padStart(2,"0");
           const fullThis=allLogs.filter(l=>l.log_date.startsWith(mkey)&&l.movement&&l.god&&l.vanity&&l.business).length;
           const isCurMon=calYear===now2.getFullYear()&&calMonth===now2.getMonth();
           const prevM=()=>{if(calMonth===0){setCalMonth(11);setCalYear(y=>y-1);}else setCalMonth(m=>m-1);};
@@ -375,7 +375,7 @@ export default function App(){
                 {Array.from({length:fdow},(_,i)=><div key={`e${i}`}/>)}
                 {Array.from({length:dim},(_,i)=>{
                   const dn=i+1;
-                  const key=`${calYear}-${String(calMonth+1).padStart(2,"0")}-${String(dn).padStart(2,"0")}`;
+                  const key=calYear+"-"+String(calMonth+1).padStart(2,"0")+"-"+String(dn).padStart(2,"0");
                   const log=allLogs.find(l=>l.log_date===key)||{};
                   const done=CORE4.filter(c=>log[c.id]).length;
                   const full=done===4;
@@ -459,7 +459,7 @@ export default function App(){
             <div style={{fontSize:22,fontWeight:700,color:D.textPrimary,fontFamily:FF,letterSpacing:1,marginBottom:16}}>Edit Requests</div>
             {editRequests.length===0&&<div style={{background:D.surface,borderRadius:D.r16,padding:40,textAlign:"center",color:D.textTert,border:`1px solid ${D.divider}`}}>All warriors are up to date ✓</div>}
             {editRequests.map(req=>(
-              <div key={req.id} style={{background:D.surface,borderRadius:D.r16,padding:16,marginBottom:12,border:`1px solid ${req.status==="pending"?"rgba(214,178,94,0.3)":req.status==="approved"?"rgba(53,193,139,0.3)":"rgba(255,90,95,0.2)"}`}}>
+              <div key={req.id} style={{background:D.surface,borderRadius:D.r16,padding:16,marginBottom:12,border:req.status==="pending"?"1px solid rgba(214,178,94,0.3)":req.status==="approved"?"1px solid rgba(53,193,139,0.3)":"1px solid rgba(255,90,95,0.2)"}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
                   <div>
                     <div style={{fontSize:15,fontWeight:600,color:D.textPrimary}}>{req.profiles?.name||"Unknown"}</div>
@@ -531,8 +531,8 @@ function ProgressRing({pct,done,goalPct,monthPct}){
 
 function TaskRow({icon,label,desc,checked,onClick,accent,delay=0,progress}){
   return(
-    <div className="task-row" onClick={onClick} style={{background:checked?"rgba(53,193,139,0.07)":D.surface,border:`1px solid ${checked?"rgba(53,193,139,0.2)":D.divider}`,borderRadius:D.r12,padding:"13px 15px",marginBottom:9,display:"flex",alignItems:"center",gap:13,cursor:"pointer",transition:"all 0.18s",animation:`fadeUp 0.3s ease ${delay}ms both`}}>
-      <div style={{width:42,height:42,borderRadius:D.r10,flexShrink:0,background:checked?"rgba(53,193,139,0.12)":"rgba(255,255,255,0.04)",border:`1px solid ${checked?"rgba(53,193,139,0.25)":D.divider}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:19,transition:"all 0.18s"}}>
+    <div className="task-row" onClick={onClick} style={{background:checked?"rgba(53,193,139,0.07)":D.surface,border:checked?"1px solid rgba(53,193,139,0.2)":"1px solid "+D.divider,borderRadius:D.r12,padding:"13px 15px",marginBottom:9,display:"flex",alignItems:"center",gap:13,cursor:"pointer",transition:"all 0.18s",animation:`fadeUp 0.3s ease ${delay}ms both`}}>
+      <div style={{width:42,height:42,borderRadius:D.r10,flexShrink:0,background:checked?"rgba(53,193,139,0.12)":"rgba(255,255,255,0.04)",border:checked?"1px solid rgba(53,193,139,0.25)":"1px solid "+D.divider,display:"flex",alignItems:"center",justifyContent:"center",fontSize:19,transition:"all 0.18s"}}>
         {checked?<span style={{color:D.success,fontSize:17,fontWeight:700}}>✓</span>:icon}
       </div>
       <div style={{flex:1,minWidth:0}}>
@@ -540,7 +540,7 @@ function TaskRow({icon,label,desc,checked,onClick,accent,delay=0,progress}){
         <div style={{fontSize:12,color:D.textTert,marginTop:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{desc}</div>
         {progress!==undefined&&<div style={{marginTop:6,background:"rgba(255,255,255,0.05)",borderRadius:2,height:3,overflow:"hidden"}}><div style={{height:"100%",width:`${progress}%`,background:accent||D.brand,borderRadius:2,transition:"width 0.5s"}}/></div>}
       </div>
-      {checked&&streak>0&&<span style={{fontSize:13,flexShrink:0}}>🔥</span>}
+      {checked&&<span style={{fontSize:13,flexShrink:0}}>🔥</span>}
     </div>
   );
 }
@@ -697,12 +697,6 @@ function AuthScreen({mode,setMode,email,setEmail,password,setPassword,name,setNa
 function LeaderboardScreen({leaderboard,allLogs,goalCompletions,userId,now2}){
   const [filter,setFilter]=useState("month"); // week | month | alltime
 
-  const filtered = leaderboard.map(entry=>{
-    const uLogs = allLogs; // we don't have per-user logs here, use leaderboard scores
-    // Recalculate score based on filter
-    return entry; // scores already calculated globally, we'll sort by existing
-  });
-
   // Get week start
   const weekStart=new Date(now2);
   weekStart.setDate(now2.getDate()-now2.getDay());
@@ -790,7 +784,7 @@ function LeaderboardScreen({leaderboard,allLogs,goalCompletions,userId,now2}){
         return(
           <div key={entry.id} style={{
             background:isYou?`rgba(53,193,139,0.07)`:D.surface,
-            border:`1px solid ${isYou?"rgba(53,193,139,0.2)":D.divider}`,
+            border:isYou?"1px solid rgba(53,193,139,0.2)":"1px solid "+D.divider,
             borderRadius:D.r12,padding:"12px 14px",marginBottom:8,
             display:"flex",alignItems:"center",gap:12,
             animation:`fadeUp 0.3s ease ${i*30}ms both`,
@@ -800,7 +794,7 @@ function LeaderboardScreen({leaderboard,allLogs,goalCompletions,userId,now2}){
               {i+1}
             </div>
             {/* Avatar */}
-            <div style={{width:36,height:36,borderRadius:"50%",flexShrink:0,background:isYou?"rgba(53,193,139,0.15)":D.surface2,border:`1px solid ${isYou?"rgba(53,193,139,0.3)":D.divider}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700,color:isYou?D.success:D.textSec}}>
+            <div style={{width:36,height:36,borderRadius:"50%",flexShrink:0,background:isYou?"rgba(53,193,139,0.15)":D.surface2,border:isYou?"1px solid rgba(53,193,139,0.3)":"1px solid "+D.divider,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700,color:isYou?D.success:D.textSec}}>
               {initials}
             </div>
             {/* Name + stats */}
