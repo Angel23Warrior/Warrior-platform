@@ -124,16 +124,21 @@ export default function WarriorPlatform() {
   }
 
   async function loadEditRequests(uid) {
-    const prof = await supabase.from("profiles").select("role").eq("id", uid).single();
-    if (prof.data?.role === "manager") {
-      // Admins load all pending requests with user info
-      const { data } = await supabase
+    const { data: profData } = await supabase.from("profiles").select("role").eq("id", uid).single();
+    if (profData?.role === "manager") {
+      // Load all requests first
+      const { data: requests } = await supabase
         .from("edit_requests")
-        .select("*, profiles(name, email)")
+        .select("*")
         .order("created_at", { ascending: false });
-      setEditRequests(data || []);
+      if (!requests) { setEditRequests([]); return; }
+      // Then load profile names separately
+      const { data: profiles } = await supabase.from("profiles").select("id, name, email");
+      const profileMap = {};
+      (profiles || []).forEach(p => { profileMap[p.id] = p; });
+      const enriched = requests.map(r => ({ ...r, profiles: profileMap[r.user_id] || null }));
+      setEditRequests(enriched);
     } else {
-      // Warriors load their own requests
       const { data } = await supabase
         .from("edit_requests")
         .select("*")
