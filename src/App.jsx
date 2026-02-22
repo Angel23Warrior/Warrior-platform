@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { Zap, Calendar, Trophy, Target, Settings, Shield, Sunrise, Heart, BookOpen, Flame, Crown, Check, Plus, ChevronLeft, ChevronRight, X, Lock, Clock, XCircle, AlertCircle } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 import { WW_LOGO, B49_LOGO } from "./logos.js";
 
@@ -18,11 +19,21 @@ const D = {
 const FF="'Barlow Condensed','Oswald',sans-serif";
 const FB="-apple-system,'SF Pro Display','Helvetica Neue',sans-serif";
 const CORE4=[
-  {id:"movement",icon:"⚡",label:"15 Min Movement",desc:"Train, stretch, or sweat."},
-  {id:"god",icon:"🙏",label:"15 Min With God",desc:"Prayer, meditation, reflection."},
-  {id:"vanity",icon:"💌",label:"2 Vanity Notes",desc:"Express gratitude or love."},
-  {id:"business",icon:"📖",label:"Business Listen / Read",desc:"Learn something. Share it."},
+  {id:"movement",icon:"zap",label:"15 Min Movement",desc:"Train, stretch, or sweat."},
+  {id:"god",icon:"sunrise",label:"15 Min With God",desc:"Prayer, meditation, reflection."},
+  {id:"vanity",icon:"heart",label:"2 Vanity Notes",desc:"Express gratitude or love."},
+  {id:"business",icon:"book",label:"Business Listen / Read",desc:"Learn something. Share it."},
 ];
+function C4Icon({icon,size=18,color}){
+  const s={size,color:color||"currentColor"};
+  if(icon==="zap")     return <Zap {...s}/>;
+  if(icon==="sunrise") return <Sunrise {...s}/>;
+  if(icon==="heart")   return <Heart {...s}/>;
+  if(icon==="book")    return <BookOpen {...s}/>;
+  if(icon==="target")  return <Target {...s}/>;
+  return null;
+}
+
 const GOAL_COLORS=["#D6B25E","#35C18B","#4A9EF5","#E06FBF","#A78BFA","#F59E4A","#F87171","#6EE7B7"];
 function todayStr(){return new Date().toISOString().slice(0,10);}
 
@@ -221,12 +232,12 @@ export default function App(){
   );
 
   const tabs=[
-    {id:"dashboard",label:"Today",icon:"⚡"},
-    {id:"calendar",label:"Calendar",icon:"📅"},
-    {id:"leaderboard",label:"Board",icon:"🏆"},
-    {id:"goals",label:"Goals",icon:"🎯"},
-    {id:"settings",label:"Settings",icon:"⚙️"},
-    ...(profile?.role==="manager"?[{id:"admin",label:"Admin",icon:"🛡️"}]:[]),
+    {id:"dashboard",label:"Today",icon:<Zap size={18}/>},
+    {id:"calendar",label:"Calendar",icon:<Calendar size={18}/>},
+    {id:"leaderboard",label:"Board",icon:<Trophy size={18}/>},
+    {id:"goals",label:"Goals",icon:<Target size={18}/>},
+    {id:"settings",label:"Settings",icon:<Settings size={18}/>},
+    ...(profile?.role==="manager"?[{id:"admin",label:"Admin",icon:<Shield size={18}/>}]:[]),
   ];
 
   return(
@@ -250,7 +261,7 @@ export default function App(){
             <div style={{fontSize:12,color:D.textTert,marginTop:3,display:"flex",gap:10,alignItems:"center"}}>
               <span style={{color:D.brand,fontWeight:600}}>{score} pts</span>
               <span style={{opacity:0.4}}>·</span>
-              <span>{streak>0?"🔥 ":""}{streak}d streak</span>
+              <span style={{display:"flex",alignItems:"center",gap:4}}>{streak>0&&<Flame size={11} color="#FF6B35"/>}{streak}d streak</span>
               <span style={{opacity:0.4}}>·</span>
               <span>{profile?.name}</span>
             </div>
@@ -362,17 +373,17 @@ export default function App(){
                 <SectionLabel style={{marginTop:22}}>Custom Goals</SectionLabel>
                 {isPastDay(selectedDate)&&!hasApprovedRequest(selectedDate)?(
                   <div style={{background:D.surface,borderRadius:D.r12,padding:"12px 16px",fontSize:13,color:D.textTert,border:`1px solid ${D.divider}`}}>
-                    {editRequests.some(r=>r.requested_date===selectedDate&&r.status==="pending")?<span style={{color:D.warning}}>⏳ Request pending approval</span>:"Submit an edit request above to unlock goals for this day."}
+                    {editRequests.some(r=>r.requested_date===selectedDate&&r.status==="pending")?<span style={{color:D.warning,display:"flex",alignItems:"center",gap:6}}><Clock size={13}/>Request pending approval</span>:"Submit an edit request above to unlock goals for this day."}
                   </div>
                 ):goals.map((goal,i)=>{
                   const checked=goalCompletions.some(gc=>gc.goal_id===goal.id&&gc.completion_date===selectedDate);
                   const doneCount=goalCompletions.filter(gc=>gc.goal_id===goal.id).length;
                   const pct=Math.min(100,Math.round((doneCount/goal.target)*100));
-                  return <TaskRow key={goal.id} icon="🎯" label={goal.name} desc={`${doneCount} / ${goal.target} ${goal.unit}`} checked={checked} onClick={()=>toggleGoalCompletion(goal.id)} accent={goal.color} delay={i*50} progress={pct}/>;
+                  return <TaskRow key={goal.id} icon="target" label={goal.name} desc={`${doneCount} / ${goal.target} ${goal.unit}`} checked={checked} onClick={()=>toggleGoalCompletion(goal.id)} accent={goal.color} delay={i*50} progress={pct}/>;
                 })}
               </>
             )}
-            <button onClick={()=>setShowAddGoal(true)} style={{width:"100%",marginTop:12,padding:"14px",background:"none",border:`1px dashed rgba(214,178,94,0.3)`,color:D.brand,borderRadius:D.r12,cursor:"pointer",fontSize:15,fontWeight:600}}>+ Add Custom Goal</button>
+            <button onClick={()=>setShowAddGoal(true)} style={{width:"100%",marginTop:12,padding:"14px",background:"none",border:`1px dashed rgba(214,178,94,0.3)`,color:D.brand,borderRadius:D.r12,cursor:"pointer",fontSize:15,fontWeight:600}} style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8}}><Plus size={16}/>Add Custom Goal</button>
           </div>
         )}
 
@@ -393,7 +404,7 @@ export default function App(){
 
               {/* Month header */}
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
-                <button onClick={prevM} style={{width:36,height:36,borderRadius:"50%",background:D.surface,border:"1px solid "+D.divider,color:D.textSec,cursor:"pointer",fontSize:20,display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
+                <button onClick={prevM} style={{width:36,height:36,borderRadius:"50%",background:D.surface,border:"1px solid "+D.divider,color:D.textSec,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><ChevronLeft size={18}/></button>
                 <div style={{textAlign:"center"}}>
                   <div style={{fontSize:22,fontWeight:700,color:D.textPrimary,fontFamily:FF,letterSpacing:1}}>{mname} {calYear}</div>
                   <div style={{fontSize:12,color:D.textTert,marginTop:3}}>
@@ -404,7 +415,7 @@ export default function App(){
                     <span>{dim-(fullThis+partialThis)} empty</span>
                   </div>
                 </div>
-                <button onClick={nextM} disabled={isCurMon} style={{width:36,height:36,borderRadius:"50%",background:D.surface,border:"1px solid "+D.divider,color:isCurMon?D.textTert:D.textSec,cursor:isCurMon?"default":"pointer",fontSize:20,display:"flex",alignItems:"center",justifyContent:"center",opacity:isCurMon?0.3:1}}>›</button>
+                <button onClick={nextM} disabled={isCurMon} style={{width:36,height:36,borderRadius:"50%",background:D.surface,border:"1px solid "+D.divider,color:isCurMon?D.textTert:D.textSec,cursor:isCurMon?"default":"pointer",display:"flex",alignItems:"center",justifyContent:"center",opacity:isCurMon?0.3:1}}><ChevronRight size={18}/></button>
               </div>
 
               {/* Month progress bar */}
@@ -631,7 +642,7 @@ function TaskRow({icon,label,desc,checked,onClick,accent,delay=0,progress}){
         <div style={{fontSize:12,color:D.textTert,marginTop:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{desc}</div>
         {progress!==undefined&&<div style={{marginTop:6,background:"rgba(255,255,255,0.05)",borderRadius:2,height:3,overflow:"hidden"}}><div style={{height:"100%",width:`${progress}%`,background:accent||D.brand,borderRadius:2,transition:"width 0.5s"}}/></div>}
       </div>
-      {checked&&<span style={{fontSize:13,flexShrink:0}}>🔥</span>}
+      {checked&&<Flame size={14} color="#FF6B35" style={{flexShrink:0}}/>}
     </div>
   );
 }
@@ -648,7 +659,7 @@ function GoalsScreen({goals,setGoals,goalCompletions,userId,onAddGoal}){
         <div style={{fontSize:11,color:D.textTert,fontWeight:600,letterSpacing:1,textTransform:"uppercase",marginBottom:12}}>Core 4 — Daily</div>
         {CORE4.map((item,i)=>(
           <div key={item.id} style={{display:"flex",alignItems:"center",gap:12,padding:"9px 0",borderBottom:i<3?`1px solid ${D.divider}`:"none"}}>
-            <span style={{fontSize:18}}>{item.icon}</span>
+            <C4Icon icon={item.icon} size={18} color={D.textSec}/>
             <div style={{flex:1}}>
               <div style={{fontSize:14,fontWeight:600,color:D.textPrimary}}>{item.label}</div>
               <div style={{fontSize:11,color:D.textTert}}>{item.desc}</div>
@@ -674,7 +685,7 @@ function GoalsScreen({goals,setGoals,goalCompletions,userId,onAddGoal}){
               </div>
               <div style={{display:"flex",alignItems:"center",gap:10}}>
                 <div style={{textAlign:"right"}}><div style={{fontSize:22,fontWeight:700,color:goal.color,fontFamily:FF,lineHeight:1}}>{dc}</div><div style={{fontSize:10,color:D.textTert}}>of {goal.target}</div></div>
-                <button onClick={()=>removeGoal(goal.id)} style={{background:"none",border:"none",color:D.textTert,cursor:"pointer",fontSize:15,padding:4}}>✕</button>
+                <button onClick={()=>removeGoal(goal.id)} style={{background:"none",border:"none",color:D.textTert,cursor:"pointer",padding:4,display:"flex",alignItems:"center"}}><X size={14}/></button>
               </div>
             </div>
             <div style={{background:D.bg,borderRadius:4,height:4,overflow:"hidden"}}><div style={{height:"100%",width:`${pct}%`,background:goal.color,borderRadius:4,transition:"width 0.5s"}}/></div>
@@ -736,10 +747,10 @@ function EditRequestCard({selectedDate,editRequests,requestReason,setRequestReas
   const denied=editRequests.some(r=>r.requested_date===selectedDate&&r.status==="denied");
   return(
     <div style={{background:D.surface,borderRadius:D.r16,padding:20,marginBottom:12,border:`1px solid rgba(214,178,94,0.18)`}}>
-      <div style={{fontSize:15,fontWeight:700,color:D.textPrimary,marginBottom:6}}>🔒 Edit Request Required</div>
+      <div style={{fontSize:15,fontWeight:700,color:D.textPrimary,marginBottom:6,display:"flex",alignItems:"center",gap:8}}><Lock size={15} color={D.brand}/>Edit Request Required</div>
       <div style={{fontSize:13,color:D.textTert,marginBottom:16,lineHeight:1.6}}>Past days require manager approval. Tell them why you missed logging.</div>
-      {pending?<div style={{background:D.brandMuted,borderRadius:D.r10,padding:"10px 14px",fontSize:13,color:D.brand}}>⏳ Request pending — waiting for approval</div>
-      :denied?<div style={{background:"rgba(255,90,95,0.08)",borderRadius:D.r10,padding:"10px 14px",fontSize:13,color:D.danger}}>❌ Request denied — contact your manager</div>
+      {pending?<div style={{background:D.brandMuted,borderRadius:D.r10,padding:"10px 14px",fontSize:13,color:D.brand,display:"flex",alignItems:"center",gap:8}}><Clock size={14}/>Request pending — waiting for approval</div>
+      :denied?<div style={{background:"rgba(255,90,95,0.08)",borderRadius:D.r10,padding:"10px 14px",fontSize:13,color:D.danger,display:"flex",alignItems:"center",gap:8}}><XCircle size={14}/>Request denied — contact your manager</div>
       :(
         <>
           <textarea value={requestReason} onChange={e=>setRequestReason(e.target.value)} placeholder="Why do you need to edit this day?" rows={3} style={{width:"100%",background:D.bg,border:`1px solid ${D.divider}`,borderRadius:D.r10,padding:"12px 14px",color:D.textPrimary,fontSize:13,outline:"none",resize:"vertical",marginBottom:10}}/>
@@ -847,7 +858,7 @@ function LeaderboardScreen({leaderboard,allLogs,goalCompletions,userId,now2}){
           </div>
           {/* 1st */}
           <div style={{flex:1,textAlign:"center",animation:"fadeUp 0.4s ease 0ms both"}}>
-            <div style={{fontSize:24,marginBottom:4}}>👑</div>
+            <div style={{marginBottom:4,color:D.brand}}><Crown size={22} fill={D.brand}/></div>
             <div style={{width:56,height:56,borderRadius:"50%",background:D.brandMuted,border:`2px solid ${D.brand}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,fontWeight:700,color:D.brand,margin:"0 auto 6px",boxShadow:`0 0 16px rgba(214,178,94,0.3)`}}>
               {sorted[0]?.name?.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase()}
             </div>
@@ -894,7 +905,7 @@ function LeaderboardScreen({leaderboard,allLogs,goalCompletions,userId,now2}){
                 {entry.name}{isYou&&<span style={{fontSize:10,color:D.textTert,marginLeft:6,fontWeight:400}}>you</span>}
               </div>
               <div style={{fontSize:11,color:D.textTert,marginTop:1,display:"flex",gap:8}}>
-                <span>{entry.streak>0?"🔥":"⬜"} {entry.streak}d</span>
+                <span style={{display:"flex",alignItems:"center",gap:3}}>{entry.streak>0&&<Flame size={11} color="#FF6B35"/>}{entry.streak}d</span>
                 <span>·</span>
                 <span>{entry.fullDays} full days</span>
               </div>
@@ -927,7 +938,7 @@ function LeaderboardScreen({leaderboard,allLogs,goalCompletions,userId,now2}){
           </div>
           <div style={{flex:1}}>
             <div style={{fontSize:14,fontWeight:600,color:D.success}}>{me.name} <span style={{fontSize:10,color:D.textTert,fontWeight:400}}>you</span></div>
-            <div style={{fontSize:11,color:D.textTert}}>{me.streak>0?"🔥 "+me.streak+"d streak":"no streak"} · {me.fullDays} full days</div>
+            <div style={{fontSize:11,color:D.textTert}}>{me.streak>0&&<Flame size={11} color="#FF6B35" style={{marginRight:3}}/>}{me.streak>0?me.streak+"d streak":"no streak"} · {me.fullDays} full days</div>
           </div>
           <div style={{textAlign:"right"}}>
             <div style={{fontSize:20,fontWeight:700,color:D.success,fontFamily:FF,lineHeight:1}}>{me.score}</div>
