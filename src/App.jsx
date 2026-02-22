@@ -207,6 +207,7 @@ export default function App(){
 
   function isPastDay(d){return d<todayStr();}
   function hasApprovedRequest(d){return editRequests.some(r=>r.requested_date===d&&r.status==="approved");}
+  function hasCompletedRequest(d){return editRequests.some(r=>r.requested_date===d&&r.status==="completed");}
 
   async function toggleCore4(field){
     const dk=selectedDate;
@@ -238,6 +239,14 @@ export default function App(){
     await supabase.from("profiles").update({is_private:nv}).eq("id",user.id);
     setProfile(p=>({...p,is_private:nv}));
     await loadLeaderboard();
+  }
+
+  async function lockEditAfterChanges(){
+    // Mark the approved request as "completed" so day locks again
+    const req=editRequests.find(r=>r.requested_date===selectedDate&&r.status==="approved");
+    if(!req)return;
+    await supabase.from("edit_requests").update({status:"completed"}).eq("id",req.id);
+    setEditRequests(prev=>prev.map(r=>r.id===req.id?{...r,status:"completed"}:r));
   }
 
   async function submitEditRequest(){
@@ -411,9 +420,18 @@ export default function App(){
             ):isPastDay(selectedDate)&&!hasApprovedRequest(selectedDate)?(
               <EditRequestCard selectedDate={selectedDate} editRequests={editRequests} requestReason={requestReason} setRequestReason={setRequestReason} requestMsg={requestMsg} onSubmit={submitEditRequest}/>
             ):(
-              CORE4.map((item,i)=>(
-                <TaskRow key={item.id} icon={item.icon} label={item.label} desc={item.desc} checked={!!selLog[item.id]} onClick={()=>toggleCore4(item.id)} delay={i*50}/>
-              ))
+              <>
+                {/* Unlocked edit banner */}
+                {isPastDay(selectedDate)&&(
+                  <div style={{background:"rgba(53,193,139,0.08)",border:"1px solid rgba(53,193,139,0.2)",borderRadius:D.r10,padding:"10px 16px",marginBottom:12,display:"flex",alignItems:"center",justifyContent:"space-between",gap:10}}>
+                    <span style={{fontSize:13,color:D.success,fontWeight:600,display:"flex",alignItems:"center",gap:6}}><Check size={13}/>Edit approved — make your changes</span>
+                    <button onClick={lockEditAfterChanges} style={{background:D.success,border:"none",borderRadius:20,padding:"6px 14px",color:"#000",fontSize:12,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:5}}><Lock size={12}/>Submit & Lock</button>
+                  </div>
+                )}
+                {CORE4.map((item,i)=>(
+                  <TaskRow key={item.id} icon={item.icon} label={item.label} desc={item.desc} checked={!!selLog[item.id]} onClick={()=>toggleCore4(item.id)} delay={i*50}/>
+                ))}
+              </>
             )}
 
             {/* Custom Goals */}
