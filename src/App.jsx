@@ -411,20 +411,30 @@ export default function WarriorPlatform() {
             {goals.length>0&&(
               <>
                 <SectionHeader T={T} style={{ marginTop:24 }}>🎯 My Custom Goals — Today</SectionHeader>
-                {goals.map(goal=>{
-                  const checked=goalCompletions.some(gc=>gc.goal_id===goal.id&&gc.completion_date===selectedDate);
-                  const doneCount=goalCompletions.filter(gc=>gc.goal_id===goal.id).length;
-                  const pct=Math.min(100,Math.round((doneCount/goal.target)*100));
-                  return(
-                    <div key={goal.id}>
-                      <CheckCard checked={checked} onClick={()=>toggleGoalCompletion(goal.id)}
-                        icon="🎯" label={goal.name} desc={`${doneCount}/${goal.target} ${goal.unit} — ${pct}%`} color={goal.color} T={T} />
-                      <div style={{ margin:"-8px 0 12px 56px", background:T.progressBg, borderRadius:4, height:5, overflow:"hidden" }}>
-                        <div style={{ height:"100%", width:`${pct}%`, background:goal.color, borderRadius:4, transition:"width 0.5s" }} />
+                {isPastDay(selectedDate) && !hasApprovedRequest(selectedDate) ? (
+                  <div style={{ background:T.card, border:`1px solid ${T.cardBorder}`, borderLeft:"4px solid #c9a84c", borderRadius:8, padding:16, fontSize:13, color:T.textSub, fontFamily:BF }}>
+                    {editRequests.some(r=>r.requested_date===selectedDate&&r.status==="pending")
+                      ? <span style={{ color:"#c9a84c", fontFamily:MF, letterSpacing:1 }}>⏳ REQUEST PENDING — Waiting for manager approval</span>
+                      : editRequests.some(r=>r.requested_date===selectedDate&&r.status==="denied")
+                      ? <span style={{ color:"#ff6b6b", fontFamily:MF, letterSpacing:1 }}>❌ REQUEST DENIED — Contact your manager directly</span>
+                      : "Submit an edit request above to unlock custom goals for this day too."}
+                  </div>
+                ) : (
+                  goals.map(goal=>{
+                    const checked=goalCompletions.some(gc=>gc.goal_id===goal.id&&gc.completion_date===selectedDate);
+                    const doneCount=goalCompletions.filter(gc=>gc.goal_id===goal.id).length;
+                    const pct=Math.min(100,Math.round((doneCount/goal.target)*100));
+                    return(
+                      <div key={goal.id}>
+                        <CheckCard checked={checked} onClick={()=>toggleGoalCompletion(goal.id)}
+                          icon="🎯" label={goal.name} desc={`${doneCount}/${goal.target} ${goal.unit} — ${pct}%`} color={goal.color} T={T} />
+                        <div style={{ margin:"-8px 0 12px 56px", background:T.progressBg, borderRadius:4, height:5, overflow:"hidden" }}>
+                          <div style={{ height:"100%", width:`${pct}%`, background:goal.color, borderRadius:4, transition:"width 0.5s" }} />
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                )}
               </>
             )}
             <div style={{ marginTop:20, display:"flex", gap:10, flexDirection:"column" }}>
