@@ -71,7 +71,7 @@ export default function App(){
   const prevC4=useRef(0);
 
   useEffect(()=>{
-    const minLoad=new Promise(r=>setTimeout(r,3200));
+    const minLoad=new Promise(r=>setTimeout(r,5000));
     const sess=supabase.auth.getSession().then(({data:{session}})=>session);
     Promise.all([minLoad,sess]).then(async([,session])=>{
       if(session?.user){
