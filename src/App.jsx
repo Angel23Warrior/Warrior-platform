@@ -71,11 +71,16 @@ export default function App(){
   const prevC4=useRef(0);
 
   useEffect(()=>{
-    const minLoad=new Promise(r=>setTimeout(r,2800));
+    const minLoad=new Promise(r=>setTimeout(r,3200));
     const sess=supabase.auth.getSession().then(({data:{session}})=>session);
-    Promise.all([minLoad,sess]).then(([,session])=>{
-      if(session?.user){setUser(session.user);loadUserData(session.user.id);setScreen("dashboard");}
-      else setScreen("login");
+    Promise.all([minLoad,sess]).then(async([,session])=>{
+      if(session?.user){
+        setUser(session.user);
+        await loadUserData(session.user.id);
+        setScreen("dashboard");
+      } else {
+        setScreen("login");
+      }
     });
     const {data:{subscription}}=supabase.auth.onAuthStateChange((_e,session)=>{
       if(session?.user){setUser(session.user);loadUserData(session.user.id);setScreen("dashboard");}
