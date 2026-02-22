@@ -250,10 +250,6 @@ export default function App(){
   }
 
   async function submitEditRequest(){
-    if(isLockedDate(selectedDate)){
-      setRequestMsg("This date is permanently locked. Only yesterday can be requested.");
-      return;
-    }
     if(!requestReason.trim())return;
     setRequestMsg("");
     const {error}=await supabase.from("edit_requests").insert({user_id:user.id,requested_date:selectedDate,reason:requestReason.trim(),status:"pending"});
@@ -411,13 +407,7 @@ export default function App(){
 
             {/* Core 4 */}
             <SectionLabel>Core 4</SectionLabel>
-            {isLockedDate(selectedDate)?(
-              <div style={{background:D.surface,borderRadius:D.r16,padding:20,marginBottom:12,border:"1px solid "+D.divider,textAlign:"center"}}>
-                <Lock size={20} color={D.textTert} style={{margin:"0 auto 8px"}}/>
-                <div style={{fontSize:14,fontWeight:600,color:D.textSec,marginBottom:4}}>Log Window Closed</div>
-                <div style={{fontSize:12,color:D.textTert}}>This date is permanently locked. Only yesterday can be requested for editing.</div>
-              </div>
-            ):isPastDay(selectedDate)&&!hasApprovedRequest(selectedDate)?(
+            {isPastDay(selectedDate)&&!hasApprovedRequest(selectedDate)?(
               <EditRequestCard selectedDate={selectedDate} editRequests={editRequests} requestReason={requestReason} setRequestReason={setRequestReason} requestMsg={requestMsg} onSubmit={submitEditRequest}/>
             ):(
               <>
@@ -438,9 +428,7 @@ export default function App(){
             {goals.length>0&&(
               <>
                 <SectionLabel style={{marginTop:22}}>Custom Goals</SectionLabel>
-                {isLockedDate(selectedDate)?(
-                  <div style={{background:D.surface,borderRadius:D.r12,padding:"12px 16px",fontSize:13,color:D.textTert,textAlign:"center"}}>This date is permanently locked.</div>
-                ):isPastDay(selectedDate)&&!hasApprovedRequest(selectedDate)?(
+                {isPastDay(selectedDate)&&!hasApprovedRequest(selectedDate)?(
                   <div style={{background:D.surface,borderRadius:D.r12,padding:"12px 16px",fontSize:13,color:D.textTert,border:`1px solid ${D.divider}`}}>
                     {editRequests.some(r=>r.requested_date===selectedDate&&r.status==="pending")?<span style={{color:D.warning,display:"flex",alignItems:"center",gap:6}}><Clock size={13}/>Request pending approval</span>:"Submit an edit request above to unlock goals for this day."}
                   </div>
