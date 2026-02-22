@@ -262,11 +262,21 @@ export default function App(){
               </div>
             )}
 
+            {/* First time empty state */}
+            {allLogs.length===0&&selectedDate===todayStr()&&(
+              <div style={{background:"linear-gradient(135deg,rgba(214,178,94,0.08),rgba(53,193,139,0.05))",borderRadius:D.r16,padding:"24px 20px",marginBottom:16,border:"1px solid rgba(214,178,94,0.2)",textAlign:"center",animation:"fadeUp 0.5s ease both"}}>
+                <div style={{fontSize:28,marginBottom:10}}>⚔️</div>
+                <div style={{fontSize:18,fontWeight:700,color:D.textPrimary,fontFamily:FF,letterSpacing:1,marginBottom:6}}>Welcome to the Arena</div>
+                <div style={{fontSize:13,color:D.textSec,lineHeight:1.7,marginBottom:4}}>Complete your Core 4 below to log your first Power Hour and get on the leaderboard.</div>
+                <div style={{fontSize:12,color:D.brand,fontWeight:600,letterSpacing:1}}>REAL · RAW · RELEVANT · RESULTS</div>
+              </div>
+            )}
+
             {/* Progress Ring Card */}
             <div style={{background:D.surface,borderRadius:D.r16,padding:"28px 20px 24px",marginBottom:16,textAlign:"center",boxShadow:"0 10px 30px rgba(0,0,0,0.35)",border:`1px solid ${D.divider}`}}>
               <ProgressRing pct={ringPct} done={core4Done} goalPct={goals.length>0?Math.round((goalCompletions.filter(gc=>gc.completion_date===selectedDate).length/goals.length)*100):0} monthPct={monthPct}/>
               <div style={{fontSize:14,color:D.textSec,marginTop:14,letterSpacing:0.2}}>
-                {core4Done===4?"🔥 You won today.":core4Done===0?"Core 4. No excuses.":"Keep going. Win the day."}
+                {core4Done===4?"🔥 You won today. Come back tomorrow.":core4Done===0?"Complete your Core 4. No excuses.":"Keep going — win the day."}
               </div>
               {/* Ring legend */}
               <div style={{display:"flex",justifyContent:"center",gap:16,marginTop:12}}>
