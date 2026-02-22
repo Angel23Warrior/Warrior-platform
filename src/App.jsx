@@ -278,12 +278,28 @@ export default function App(){
               </div>
               <div style={{marginTop:18,textAlign:"left"}}>
                 <div style={{display:"flex",justifyContent:"space-between",fontSize:12,color:D.textTert,marginBottom:6}}>
-                  <span>{now2.toLocaleString("default",{month:"long"})} completion</span>
+                  <span>{now2.toLocaleString("default",{month:"long"})} — Core 4</span>
                   <span style={{color:D.brand}}>{fullDays} full days · {monthPct}%</span>
                 </div>
                 <div style={{background:D.bg,borderRadius:4,height:4,overflow:"hidden"}}>
                   <div style={{height:"100%",width:`${monthPct}%`,background:`linear-gradient(90deg,${D.brand},#F0D080)`,borderRadius:4,transition:"width 0.6s ease"}}/>
                 </div>
+                {goals.length>0&&(()=>{
+                  const totalGoalDays=goals.length*daysInMonth;
+                  const completedGoalDays=goalCompletions.filter(gc=>gc.completion_date.startsWith(monthPrefix)).length;
+                  const goalPct=totalGoalDays>0?Math.round((completedGoalDays/totalGoalDays)*100):0;
+                  return(
+                    <div style={{marginTop:10}}>
+                      <div style={{display:"flex",justifyContent:"space-between",fontSize:12,color:D.textTert,marginBottom:6}}>
+                        <span>Custom Goals</span>
+                        <span style={{color:D.success}}>{completedGoalDays} hits · {goalPct}%</span>
+                      </div>
+                      <div style={{background:D.bg,borderRadius:4,height:4,overflow:"hidden"}}>
+                        <div style={{height:"100%",width:`${goalPct}%`,background:`linear-gradient(90deg,${D.success},#6EE7B7)`,borderRadius:4,transition:"width 0.6s ease"}}/>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
 
@@ -463,11 +479,13 @@ export default function App(){
                   <span style={{fontSize:11,fontWeight:600,padding:"3px 10px",borderRadius:20,background:req.status==="pending"?D.brandMuted:req.status==="approved"?D.successMuted:"rgba(255,90,95,0.12)",color:req.status==="pending"?D.brand:req.status==="approved"?D.success:D.danger}}>{req.status}</span>
                 </div>
                 <div style={{fontSize:13,color:D.textSec,background:D.bg,borderRadius:D.r8,padding:"10px 12px",marginBottom:req.status==="pending"?12:0}}>"{req.reason}"</div>
-                {req.status==="pending"&&(
+                {req.status==="pending"?(
                   <div style={{display:"flex",gap:8}}>
                     <button onClick={()=>reviewEditRequest(req.id,"approved")} style={{flex:1,padding:10,background:D.successMuted,border:`1px solid rgba(53,193,139,0.3)`,color:D.success,borderRadius:D.r10,cursor:"pointer",fontSize:14,fontWeight:600}}>Approve</button>
                     <button onClick={()=>reviewEditRequest(req.id,"denied")}   style={{flex:1,padding:10,background:"rgba(255,90,95,0.08)",border:`1px solid rgba(255,90,95,0.2)`,color:D.danger,borderRadius:D.r10,cursor:"pointer",fontSize:14,fontWeight:600}}>Deny</button>
                   </div>
+                ):(
+                  <button onClick={()=>reviewEditRequest(req.id,"pending")} style={{padding:"8px 16px",background:D.surface2,border:`1px solid ${D.divider}`,color:D.textTert,borderRadius:D.r10,cursor:"pointer",fontSize:13,fontWeight:600}}>↩ Reset to Pending</button>
                 )}
               </div>
             ))}
@@ -497,8 +515,8 @@ export default function App(){
 function ProgressRing({pct,done}){
   const r=90,circ=2*Math.PI*r,offset=circ*(1-pct/100);
   return(
-    <div style={{position:"relative",width:200,height:200,margin:"0 auto"}}>
-      <svg width="200" height="200" style={{transform:"rotate(-90deg)"}}>
+    <div style={{position:"relative",width:"min(200px, 52vw)",height:"min(200px, 52vw)",margin:"0 auto"}}>
+      <svg width="100%" height="100%" viewBox="0 0 200 200" style={{transform:"rotate(-90deg)"}}>
         <circle cx="100" cy="100" r={r} fill="none" stroke={D.bg} strokeWidth="14"/>
         <circle cx="100" cy="100" r={r} fill="none" stroke={pct===100?D.success:D.brand} strokeWidth="14" strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={offset} style={{transition:"stroke-dashoffset 0.6s cubic-bezier(0.4,0,0.2,1)",filter:pct===100?"drop-shadow(0 0 8px rgba(53,193,139,0.8))":"drop-shadow(0 0 6px rgba(214,178,94,0.6))"}}/>
       </svg>
