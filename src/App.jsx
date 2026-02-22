@@ -40,6 +40,8 @@ const GS=()=>(
     @keyframes dirtFly{0%{opacity:0;transform:translate(0,0) scale(0);}40%{opacity:1;}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1.5);}}
     @keyframes glowPulse{0%,100%{filter:drop-shadow(0 0 8px rgba(214,178,94,0.4));}50%{filter:drop-shadow(0 0 20px rgba(214,178,94,0.9));}}
     .task-row:active{transform:scale(0.98);}
+    @keyframes skeletonPulse{0%,100%{opacity:0.4;}50%{opacity:0.8;}}
+    .skeleton{animation:skeletonPulse 1.5s ease-in-out infinite;background:rgba(255,255,255,0.06);border-radius:8px;}
   `}</style>
 );
 
@@ -264,6 +266,18 @@ export default function App(){
               </div>
             )}
 
+            {/* Skeleton while loading */}
+            {!dataLoaded&&(
+              <div style={{animation:"fadeUp 0.3s ease both"}}>
+                <div className="skeleton" style={{height:280,borderRadius:D.r16,marginBottom:16}}/>
+                <div className="skeleton" style={{height:16,width:"40%",marginBottom:12,borderRadius:6}}/>
+                <div className="skeleton" style={{height:68,borderRadius:D.r12,marginBottom:9}}/>
+                <div className="skeleton" style={{height:68,borderRadius:D.r12,marginBottom:9}}/>
+                <div className="skeleton" style={{height:68,borderRadius:D.r12,marginBottom:9}}/>
+                <div className="skeleton" style={{height:68,borderRadius:D.r12,marginBottom:9}}/>
+              </div>
+            )}
+
             {/* First time empty state */}
             {dataLoaded&&allLogs.length===0&&selectedDate===todayStr()&&(
               <div style={{background:"linear-gradient(135deg,rgba(214,178,94,0.08),rgba(53,193,139,0.05))",borderRadius:D.r16,padding:"24px 20px",marginBottom:16,border:"1px solid rgba(214,178,94,0.2)",textAlign:"center",animation:"fadeUp 0.5s ease both"}}>
@@ -274,7 +288,6 @@ export default function App(){
               </div>
             )}
 
-            {/* Progress Ring Card */}
             <div style={{background:D.surface,borderRadius:D.r16,padding:"28px 20px 24px",marginBottom:16,textAlign:"center",boxShadow:"0 10px 30px rgba(0,0,0,0.35)",border:`1px solid ${D.divider}`}}>
               <ProgressRing pct={ringPct} done={core4Done} goalPct={goals.length>0?Math.round((goalCompletions.filter(gc=>gc.completion_date===selectedDate).length/goals.length)*100):0} monthPct={monthPct}/>
               <div style={{fontSize:14,color:D.textSec,marginTop:14,letterSpacing:0.2}}>
@@ -860,7 +873,7 @@ function LeaderboardScreen({leaderboard,allLogs,goalCompletions,userId,now2}){
             border:isYou?"1px solid rgba(53,193,139,0.2)":"1px solid "+D.divider,
             borderRadius:D.r12,padding:"12px 14px",marginBottom:8,
             display:"flex",alignItems:"center",gap:12,
-            animation:`fadeUp 0.3s ease ${i*30}ms both`,
+            animation:"fadeUp 0.3s ease "+(i*30)+"ms both",
           }}>
             {/* Rank number */}
             <div style={{width:26,flexShrink:0,textAlign:"center",fontSize:13,fontWeight:700,color:i===0?D.brand:i===1?"#9E9E9E":i===2?"#A0522D":D.textTert,fontFamily:FF}}>
@@ -948,7 +961,7 @@ function LoadingScreen(){
       <GS/>
       <div style={{position:"relative",width:240,height:280,marginBottom:32}}>
         {[{dx:"-42px",dy:"-32px",x:100,y:160},{dx:"52px",dy:"-42px",x:120,y:155},{dx:"-62px",dy:"-22px",x:90,y:170},{dx:"66px",dy:"-16px",x:135,y:165},{dx:"-22px",dy:"-56px",x:108,y:150},{dx:"32px",dy:"-52px",x:115,y:148}].map((p,i)=>(
-          <div key={i} style={{position:"absolute",left:p.x,top:p.y,width:6,height:6,borderRadius:"50%",background:"#2a1a08","--dx":p.dx,"--dy":p.dy,animation:`dirtFly 0.8s ease-out ${0.2+i*0.06}s both`}}/>
+          <div key={i} style={{position:"absolute",left:p.x,top:p.y,width:6,height:6,borderRadius:"50%",background:"#2a1a08","--dx":p.dx,"--dy":p.dy,animation:"dirtFly 0.8s ease-out "+(0.2+i*0.06)+"s both"}}/>
         ))}
         <svg viewBox="0 0 240 60" style={{position:"absolute",bottom:0,left:0,width:"100%",opacity:0.9}}>
           <ellipse cx="120" cy="45" rx="100" ry="18" fill="#050302"/>
@@ -988,7 +1001,7 @@ function LoadingScreen(){
         <div style={{fontSize:12,color:D.brand,letterSpacing:4,marginBottom:28,fontWeight:600}}>#WARRIORSWAY</div>
         <div style={{fontSize:12,color:D.textTert,letterSpacing:2,marginBottom:12,height:18}}>{phases[phase]}{".".repeat(dots)}</div>
         <div style={{width:160,height:2,background:D.surface,borderRadius:2,overflow:"hidden",margin:"0 auto"}}>
-          <div style={{height:"100%",width:`${((phase+1)/phases.length)*100}%`,background:D.brand,borderRadius:2,transition:"width 0.9s ease"}}/>
+          <div style={{height:"100%",width:(((phase+1)/phases.length)*100)+"%",background:D.brand,borderRadius:2,transition:"width 0.9s ease"}}/>
         </div>
       </div>
     </div>
