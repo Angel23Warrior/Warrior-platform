@@ -264,15 +264,7 @@ export default function App(){
 
             {/* Progress Ring Card */}
             <div style={{background:D.surface,borderRadius:D.r16,padding:"28px 20px 24px",marginBottom:16,textAlign:"center",boxShadow:"0 10px 30px rgba(0,0,0,0.35)",border:`1px solid ${D.divider}`}}>
-              <ProgressRing
-                pct={ringPct}
-                done={core4Done}
-                goalPct={(()=>{
-                  const todayGoalDone=goalCompletions.filter(gc=>gc.completion_date===selectedDate).length;
-                  return goals.length>0?Math.round((todayGoalDone/goals.length)*100):0;
-                })()}
-                monthPct={monthPct}
-              />
+              <ProgressRing pct={ringPct} done={core4Done} goalPct={goals.length>0?Math.round((goalCompletions.filter(gc=>gc.completion_date===selectedDate).length/goals.length)*100):0} monthPct={monthPct}/>
               <div style={{fontSize:14,color:D.textSec,marginTop:14,letterSpacing:0.2}}>
                 {core4Done===4?"🔥 You won today.":core4Done===0?"Core 4. No excuses.":"Keep going. Win the day."}
               </div>
@@ -510,42 +502,25 @@ export default function App(){
 }
 
 function ProgressRing({pct,done,goalPct,monthPct}){
-  // Three rings: outer=Core4, middle=goals today, inner=month
-  const rings=[
-    {r:86, color:pct===100?D.success:D.brand,      glow:pct===100?"rgba(53,193,139,0.8)":"rgba(214,178,94,0.6)",   pct,      sw:13},
-    {r:66, color:"#4A9EF5",                          glow:"rgba(74,158,245,0.6)",                                    pct:goalPct, sw:11},
-    {r:48, color:"#E06FBF",                          glow:"rgba(224,111,191,0.6)",                                   pct:monthPct,sw:10},
-  ];
+  const c4Circ=2*Math.PI*86;
+  const c4Offset=c4Circ*(1-pct/100);
+  const goalCirc=2*Math.PI*66;
+  const goalOffset=goalCirc*(1-(goalPct||0)/100);
+  const monCirc=2*Math.PI*48;
+  const monOffset=monCirc*(1-(monthPct||0)/100);
+  const c4Color=pct===100?D.success:D.brand;
   return(
     <div style={{position:"relative",width:"min(220px,58vw)",height:"min(220px,58vw)",margin:"0 auto"}}>
       <svg width="100%" height="100%" viewBox="0 0 200 200" style={{transform:"rotate(-90deg)"}}>
-        {rings.map((ring,i)=>{
-          const circ=2*Math.PI*ring.r;
-          const offset=circ*(1-(ring.pct||0)/100);
-          return(
-            <g key={i}>
-              {/* Track */}
-              <circle cx="100" cy="100" r={ring.r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={ring.sw}/>
-              {/* Fill */}
-              <circle cx="100" cy="100" r={ring.r} fill="none"
-                stroke={ring.color} strokeWidth={ring.sw}
-                strokeLinecap="round"
-                strokeDasharray={circ}
-                strokeDashoffset={offset}
-                style={{
-                  transition:"stroke-dashoffset 0.7s cubic-bezier(0.4,0,0.2,1)",
-                  filter:`drop-shadow(0 0 5px ${ring.glow})`,
-                }}
-              />
-            </g>
-          );
-        })}
+        <circle cx="100" cy="100" r="86" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="13"/>
+        <circle cx="100" cy="100" r="86" fill="none" stroke={c4Color} strokeWidth="13" strokeLinecap="round" strokeDasharray={c4Circ} strokeDashoffset={c4Offset} style={{transition:"stroke-dashoffset 0.7s cubic-bezier(0.4,0,0.2,1)",filter:`drop-shadow(0 0 6px ${pct===100?"rgba(53,193,139,0.8)":"rgba(214,178,94,0.6)"})`}}/>
+        <circle cx="100" cy="100" r="66" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="11"/>
+        <circle cx="100" cy="100" r="66" fill="none" stroke="#4A9EF5" strokeWidth="11" strokeLinecap="round" strokeDasharray={goalCirc} strokeDashoffset={goalOffset} style={{transition:"stroke-dashoffset 0.7s cubic-bezier(0.4,0,0.2,1)",filter:"drop-shadow(0 0 5px rgba(74,158,245,0.6))"}}/>
+        <circle cx="100" cy="100" r="48" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="10"/>
+        <circle cx="100" cy="100" r="48" fill="none" stroke="#E06FBF" strokeWidth="10" strokeLinecap="round" strokeDasharray={monCirc} strokeDashoffset={monOffset} style={{transition:"stroke-dashoffset 0.7s cubic-bezier(0.4,0,0.2,1)",filter:"drop-shadow(0 0 5px rgba(224,111,191,0.6))"}}/>
       </svg>
-      {/* Center text */}
       <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:2}}>
-        <div style={{fontSize:40,fontWeight:700,color:pct===100?D.success:D.textPrimary,fontFamily:FF,lineHeight:1,animation:pct===100?"popIn 0.4s ease both":"none"}}>
-          {done}/4
-        </div>
+        <div style={{fontSize:40,fontWeight:700,color:pct===100?D.success:D.textPrimary,fontFamily:FF,lineHeight:1,animation:pct===100?"popIn 0.4s ease both":"none"}}>{done}/4</div>
         <div style={{fontSize:11,color:D.textTert,letterSpacing:0.5}}>{pct===100?"Won today ✓":"Core 4"}</div>
       </div>
     </div>
