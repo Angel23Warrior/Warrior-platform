@@ -203,10 +203,13 @@ export default function WarriorPlatform() {
   const score      = (() => { let s=0; for(const l of allLogs){const c4=[l.movement,l.god,l.vanity,l.business].filter(Boolean).length;s+=c4*10;if(c4===4)s+=20;} s+=goalCompletions.length*5; return s; })();
   const core4Done  = ["movement","god","vanity","business"].filter(f=>todayLog[f]).length;
   const joinDate   = profile?.join_date ? new Date(profile.join_date) : new Date();
-  const daysPassed = Math.min(30, Math.max(1, Math.floor((Date.now()-joinDate)/86400000)+1));
-  const journeyPct = Math.round(((daysPassed-1)/30)*100);
-  const fullDays   = allLogs.filter(l=>l.movement&&l.god&&l.vanity&&l.business).length;
-  const completionPct = Math.round((fullDays/30)*100);
+  const now2 = new Date();
+  const daysInCurrentMonth = new Date(now2.getFullYear(), now2.getMonth()+1, 0).getDate();
+  const daysPassed = now2.getDate();
+  const journeyPct = Math.round(((daysPassed-1)/daysInCurrentMonth)*100);
+  const monthPrefix = now2.toISOString().slice(0,7);
+  const fullDays = allLogs.filter(l=>l.log_date.startsWith(monthPrefix)&&l.movement&&l.god&&l.vanity&&l.business).length;
+  const completionPct = Math.round((fullDays/daysInCurrentMonth)*100);
 
   if (screen==="loading") return <Loader />;
   if (screen==="login"||screen==="signup") return (
@@ -245,15 +248,15 @@ export default function WarriorPlatform() {
           </button>
         </div>
         <div style={{ padding:"0 4px" }}>
-          <ProgressBar label="30-Day Journey" right={`Day ${daysPassed} of 30 — ${journeyPct}%`} pct={journeyPct} color="linear-gradient(90deg,#c9a84c,#e8c96c)" />
+          <ProgressBar label="30-Day Journey" right={`${now2.toLocaleString("default",{month:"long"})} — Day ${daysPassed} of ${daysInCurrentMonth}`} pct={journeyPct} color="linear-gradient(90deg,#c9a84c,#e8c96c)" />
           <div style={{ marginTop:8 }} />
-          <ProgressBar label="Core 4 Completion" right={`${fullDays} full days — ${completionPct}%`} pct={completionPct} color="linear-gradient(90deg,#2a7a2a,#4caf50)" />
+          <ProgressBar label="Core 4 Completion" right={`${fullDays} full days this month — ${completionPct}%`} pct={completionPct} color="linear-gradient(90deg,#2a7a2a,#4caf50)" />
         </div>
       </div>
 
       {/* ── NAV ── */}
       <div style={{ display:"flex", background:"#0d1b2a", borderBottom:"1px solid #c9a84c33", overflowX:"auto" }}>
-        {[["dashboard","Today"],["calendar","30 Days"],["leaderboard","Leaderboard"],["goals","My Goals"]].map(([id,label])=>(
+        {[["dashboard","Today"],["calendar","Calendar"],["leaderboard","Leaderboard"],["goals","My Goals"]].map(([id,label])=>(
           <button key={id} onClick={()=>setScreen(id)} style={{
             padding:"12px 20px", border:"none", background:"none",
             color:screen===id?"#c9a84c":"#5a7a9a",
@@ -317,40 +320,81 @@ export default function WarriorPlatform() {
           </div>
         )}
 
-        {/* ── 30-DAY CALENDAR ── */}
-        {screen==="calendar"&&(
-          <div>
-            <SectionHeader T={T}>📅 30-Day View</SectionHeader>
-            <div style={{ fontSize:12, color:T.textSub, marginBottom:16 }}>Gold dots = Core 4 items. Green = full day.</div>
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(6,1fr)", gap:8 }}>
-              {Array.from({length:30},(_,i)=>{
-                const d=new Date(joinDate); d.setDate(joinDate.getDate()+i);
-                const key=d.toISOString().slice(0,10);
-                const log=allLogs.find(l=>l.log_date===key)||{};
-                const done=["movement","god","vanity","business"].filter(f=>log[f]).length;
-                const full=done===4;
-                const isCurrent=key===todayStr();
-                const future=key>todayStr();
-                return(
-                  <div key={i} onClick={()=>!future&&setScreen("dashboard")} style={{
-                    background:full?(darkMode?"linear-gradient(135deg,#1a3010,#253a10)":"linear-gradient(135deg,#e8f5e8,#d0ead0)"):future?T.futureCard:T.card,
-                    border:isCurrent?"2px solid #c9a84c":full?"1px solid #4a7a20":`1px solid ${T.cardBorder}`,
-                    borderRadius:6, padding:"10px 4px", textAlign:"center",
-                    cursor:future?"default":"pointer", opacity:future?0.4:1, transition:"background 0.3s",
-                  }}>
-                    <div style={{ fontSize:10, color:T.textSub, marginBottom:2, fontFamily:MF, letterSpacing:1 }}>DAY</div>
-                    <div style={{ fontSize:20, fontWeight:700, color:isCurrent?"#c9a84c":full?"#4caf50":T.sectionText, fontFamily:MF }}>{i+1}</div>
-                    <div style={{ marginTop:5, display:"flex", gap:2, justifyContent:"center" }}>
-                      {CORE4.map(c=>(
-                        <div key={c.id} style={{ width:5, height:5, borderRadius:"50%", background:log[c.id]?"#c9a84c":T.progressBg }} />
-                      ))}
+        {/* ── MONTHLY CALENDAR ── */}
+        {screen==="calendar"&&(()=>{
+          const now = new Date();
+          const [calYear, setCalYear] = useState(now.getFullYear());
+          const [calMonth, setCalMonth] = useState(now.getMonth());
+          const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+          const firstDayOfWeek = new Date(calYear, calMonth, 1).getDay();
+          const monthName = new Date(calYear, calMonth, 1).toLocaleString('default',{month:'long'});
+          const DAY_LABELS = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+
+          return(
+            <div>
+              <SectionHeader T={T}>📅 {monthName} {calYear}</SectionHeader>
+              {/* Month nav */}
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
+                <button onClick={()=>{ if(calMonth===0){setCalMonth(11);setCalYear(y=>y-1);}else setCalMonth(m=>m-1); }}
+                  style={{ background:"none", border:`1px solid ${T.cardBorder}`, color:T.text, padding:"6px 14px", borderRadius:4, cursor:"pointer", fontFamily:MF, fontSize:14, letterSpacing:1 }}>← PREV</button>
+                <div style={{ fontSize:11, color:T.textSub, fontFamily:MF, letterSpacing:2 }}>
+                  {allLogs.filter(l=>l.log_date.startsWith(`${calYear}-${String(calMonth+1).padStart(2,'0')}`)).filter(l=>l.movement&&l.god&&l.vanity&&l.business).length} FULL DAYS THIS MONTH
+                </div>
+                <button onClick={()=>{ if(calMonth===11){setCalMonth(0);setCalYear(y=>y+1);}else setCalMonth(m=>m+1); }}
+                  disabled={calYear===now.getFullYear()&&calMonth===now.getMonth()}
+                  style={{ background:"none", border:`1px solid ${T.cardBorder}`, color:T.text, padding:"6px 14px", borderRadius:4, cursor:"pointer", fontFamily:MF, fontSize:14, letterSpacing:1, opacity:calYear===now.getFullYear()&&calMonth===now.getMonth()?0.3:1 }}>NEXT →</button>
+              </div>
+
+              {/* Day-of-week headers */}
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:4, marginBottom:4 }}>
+                {DAY_LABELS.map(d=>(
+                  <div key={d} style={{ textAlign:"center", fontSize:10, color:T.textSub, fontFamily:MF, letterSpacing:1, padding:"4px 0" }}>{d}</div>
+                ))}
+              </div>
+
+              {/* Calendar grid */}
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:4 }}>
+                {/* Empty cells for first week offset */}
+                {Array.from({length:firstDayOfWeek},(_,i)=>(
+                  <div key={`empty-${i}`} />
+                ))}
+                {Array.from({length:daysInMonth},(_,i)=>{
+                  const dayNum = i+1;
+                  const key = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(dayNum).padStart(2,'0')}`;
+                  const log = allLogs.find(l=>l.log_date===key)||{};
+                  const done = ["movement","god","vanity","business"].filter(f=>log[f]).length;
+                  const full = done===4;
+                  const isCurrent = key===todayStr();
+                  const future = key>todayStr();
+                  const isWeekend = [0,6].includes(new Date(calYear,calMonth,dayNum).getDay());
+                  return(
+                    <div key={dayNum} onClick={()=>{ if(!future){ setScreen("dashboard"); }}} style={{
+                      background: full?(darkMode?"linear-gradient(135deg,#1a3010,#253a10)":"linear-gradient(135deg,#e8f5e8,#d0ead0)"):future?T.futureCard:T.card,
+                      border: isCurrent?"2px solid #c9a84c":full?"1px solid #4a7a20":`1px solid ${T.cardBorder}`,
+                      borderRadius:6, padding:"8px 2px", textAlign:"center",
+                      cursor:future?"default":"pointer", opacity:future?0.35:1,
+                      transition:"background 0.3s",
+                    }}>
+                      <div style={{ fontSize:14, fontWeight:700, color:isCurrent?"#c9a84c":full?"#4caf50":isWeekend?"#8a9ab5":T.text, fontFamily:MF, lineHeight:1, marginBottom:4 }}>{dayNum}</div>
+                      <div style={{ display:"flex", gap:2, justifyContent:"center", flexWrap:"wrap" }}>
+                        {CORE4.map(c=>(
+                          <div key={c.id} style={{ width:4, height:4, borderRadius:"50%", background:log[c.id]?"#c9a84c":T.progressBg }} />
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
+
+              {/* Legend */}
+              <div style={{ marginTop:16, display:"flex", gap:16, fontSize:11, color:T.textSub, flexWrap:"wrap" }}>
+                <span>🟡 dots = Core 4 items</span>
+                <span>🟢 green = full day</span>
+                <span>🟡 gold border = today</span>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* ── LEADERBOARD ── */}
         {screen==="leaderboard"&&(
