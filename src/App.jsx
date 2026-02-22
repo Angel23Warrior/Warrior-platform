@@ -331,8 +331,18 @@ export default function App(){
   }
 
   async function reviewEditRequest(id,status){
+    // Get the request first so we have the user_id
+    const req=editRequests.find(r=>r.id===id);
     await supabase.from("edit_requests").update({status,reviewed_by:user.id,reviewed_at:new Date().toISOString()}).eq("id",id);
     await loadEditRequests(user.id);
+    // Send push to the warrior
+    if(req){
+      if(status==="approved"){
+        sendPushToUser(req.user_id,"✅ Edit Request Approved","Your request to edit "+req.requested_date+" was approved. Go make your changes!");
+      } else if(status==="denied"){
+        sendPushToUser(req.user_id,"❌ Edit Request Denied","Your request to edit "+req.requested_date+" was denied.");
+      }
+    }
   }
 
   const selLog=allLogs.find(l=>l.log_date===selectedDate)||{};
