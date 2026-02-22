@@ -1,5 +1,31 @@
 import { useState, useEffect, useRef } from "react";
-import { Zap, Calendar, Trophy, Target, Settings, Shield, Sunrise, Heart, BookOpen, Flame, Crown, Check, Plus, ChevronLeft, ChevronRight, X, Lock, Clock, XCircle, AlertCircle } from "lucide-react";
+// Inline SVG icons - no external dependency needed
+const Ic=({d,size=18,color="currentColor",fill="none",strokeWidth=1.8,style={}})=>(
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0,...style}}><path d={d}/></svg>
+);
+const IcMulti=({paths,size=18,color="currentColor",fill="none",strokeWidth=1.8,style={}})=>(
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0,...style}}>{paths.map((p,i)=><path key={i} d={p}/>)}</svg>
+);
+// Individual icons
+const Zap=({size=18,color="currentColor",fill="none",...p})=><Ic size={size} color={color} fill={fill} d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" {...p}/>;
+const Calendar=({size=18,color="currentColor",...p})=><IcMulti size={size} color={color} paths={["M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z"]} {...p}/>;
+const Trophy=({size=18,color="currentColor",...p})=><IcMulti size={size} color={color} paths={["M6 9H4.5a2.5 2.5 0 010-5H6","M18 9h1.5a2.5 2.5 0 000-5H18","M4 22h16","M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22","M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22","M18 2H6v7a6 6 0 0012 0V2z"]} {...p}/>;
+const Target=({size=18,color="currentColor",...p})=><IcMulti size={size} color={color} paths={["M12 22a10 10 0 100-20 10 10 0 000 20z","M12 18a6 6 0 100-12 6 6 0 000 12z","M12 14a2 2 0 100-4 2 2 0 000 4z"]} {...p}/>;
+const Settings=({size=18,color="currentColor",...p})=><IcMulti size={size} color={color} paths={["M12 15a3 3 0 100-6 3 3 0 000 6z","M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"]} {...p}/>;
+const Shield=({size=18,color="currentColor",...p})=><Ic size={size} color={color} d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" {...p}/>;
+const Sunrise=({size=18,color="currentColor",...p})=><IcMulti size={size} color={color} paths={["M17 18a5 5 0 00-10 0","M12 2v7","M4.22 10.22l1.42 1.42","M1 18h2","M21 18h2","M18.36 11.64l1.42-1.42","M23 22H1","M8 6l4-4 4 4"]} {...p}/>;
+const Heart=({size=18,color="currentColor",...p})=><Ic size={size} color={color} d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" {...p}/>;
+const BookOpen=({size=18,color="currentColor",...p})=><IcMulti size={size} color={color} paths={["M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z","M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"]} {...p}/>;
+const Flame=({size=18,color="currentColor",...p})=><Ic size={size} color={color} d="M8.5 14.5A2.5 2.5 0 0011 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 01-7 7 7 7 0 01-7-7c0-1.507.333-2.78.5-3.5.459.683 1.5 1.5 1.5 1.5z" {...p}/>;
+const Crown=({size=18,color="currentColor",fill="none",...p})=><Ic size={size} color={color} fill={fill} d="M2 20h20M5 20V10l7-7 7 7v10" {...p}/>;
+const Check=({size=18,color="currentColor",...p})=><Ic size={size} color={color} d="M20 6L9 17l-5-5" {...p}/>;
+const Plus=({size=18,color="currentColor",...p})=><IcMulti size={size} color={color} paths={["M12 5v14","M5 12h14"]} {...p}/>;
+const ChevronLeft=({size=18,color="currentColor",...p})=><Ic size={size} color={color} d="M15 18l-6-6 6-6" {...p}/>;
+const ChevronRight=({size=18,color="currentColor",...p})=><Ic size={size} color={color} d="M9 18l6-6-6-6" {...p}/>;
+const X=({size=18,color="currentColor",...p})=><IcMulti size={size} color={color} paths={["M18 6L6 18","M6 6l12 12"]} {...p}/>;
+const Lock=({size=18,color="currentColor",...p})=><IcMulti size={size} color={color} paths={["M19 11H5a2 2 0 00-2 2v7a2 2 0 002 2h14a2 2 0 002-2v-7a2 2 0 00-2-2z","M7 11V7a5 5 0 0110 0v4"]} {...p}/>;
+const Clock=({size=18,color="currentColor",...p})=><IcMulti size={size} color={color} paths={["M12 22a10 10 0 100-20 10 10 0 000 20z","M12 6v6l4 2"]} {...p}/>;
+const XCircle=({size=18,color="currentColor",...p})=><IcMulti size={size} color={color} paths={["M12 22a10 10 0 100-20 10 10 0 000 20z","M15 9l-6 6","M9 9l6 6"]} {...p}/>;
 import { createClient } from "@supabase/supabase-js";
 import { WW_LOGO, B49_LOGO } from "./logos.js";
 
@@ -383,7 +409,7 @@ export default function App(){
                 })}
               </>
             )}
-            <button onClick={()=>setShowAddGoal(true)} style={{width:"100%",marginTop:12,padding:"14px",background:"none",border:`1px dashed rgba(214,178,94,0.3)`,color:D.brand,borderRadius:D.r12,cursor:"pointer",fontSize:15,fontWeight:600}} style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8}}><Plus size={16}/>Add Custom Goal</button>
+            <button onClick={()=>setShowAddGoal(true)} style={{width:"100%",marginTop:12,padding:"14px",background:"none",border:"1px dashed rgba(214,178,94,0.3)",color:D.brand,borderRadius:D.r12,cursor:"pointer",fontSize:15,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}><Plus size={16}/>Add Custom Goal</button>
           </div>
         )}
 
