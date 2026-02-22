@@ -375,7 +375,7 @@ export default function App(){
       )}
 
       {/* Top Bar */}
-      <div style={{position:"sticky",top:0,zIndex:100,background:"rgba(7,10,15,0.94)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderBottom:`1px solid ${D.divider}`,padding:"14px 20px 12px"}}>
+      <div style={{position:"sticky",top:0,zIndex:100,background:"rgba(7,10,15,0.94)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderBottom:"1px solid "+D.divider,padding:"14px 20px 12px"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",maxWidth:600,margin:"0 auto"}}>
           <div>
             <div style={{fontSize:22,fontWeight:700,color:D.textPrimary,fontFamily:FF,letterSpacing:2,lineHeight:1}}>Power Hour</div>
@@ -657,7 +657,7 @@ export default function App(){
             </div>
 
             <SettingsGroup title="Account">
-              <div style={{padding:"10px 0",borderBottom:`1px solid ${D.divider}`}}>
+              <div style={{padding:"10px 0",borderBottom:"1px solid "+D.divider}}>
                 <div style={{fontSize:15,fontWeight:600,color:D.textPrimary}}>{profile?.name}</div>
                 <div style={{fontSize:12,color:D.textTert,marginTop:2}}>{user?.email} · <span style={{color:D.brand,textTransform:"capitalize"}}>{profile?.role}</span></div>
               </div>
@@ -665,8 +665,8 @@ export default function App(){
             </SettingsGroup>
 
             <SettingsGroup title="My Stats">
-              {[{label:"Total Points",value:score},{label:"Current Streak",value:`${streak} days`},{label:"Full Power Hours",value:fullDays},{label:"Days Logged",value:allLogs.length},{label:"Custom Goals",value:goals.length}].map(s=>(
-                <div key={s.label} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:`1px solid ${D.divider}`}}>
+              {[{label:"Total Points",value:score},{label:"Current Streak",value:streak+" days"},{label:"Full Power Hours",value:fullDays},{label:"Days Logged",value:allLogs.length},{label:"Custom Goals",value:goals.length}].map(s=>(
+                <div key={s.label} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:"1px solid "+D.divider}}>
                   <div style={{fontSize:14,color:D.textSec}}>{s.label}</div>
                   <div style={{fontSize:16,fontWeight:700,color:D.brand,fontFamily:FF}}>{s.value}</div>
                 </div>
@@ -681,10 +681,14 @@ export default function App(){
               </div>
             </SettingsGroup>
 
-            <SettingsGroup label="Notifications">
-              <SettingsRow label="Push Notifications" desc="Get notified when requests are approved or denied">
+            <SettingsGroup title="Notifications">
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 0"}}>
+                <div>
+                  <div style={{fontSize:14,fontWeight:600,color:D.textPrimary}}>Push Notifications</div>
+                  <div style={{fontSize:12,color:D.textTert,marginTop:2}}>Get notified when requests are approved or denied</div>
+                </div>
                 <PushToggle registerPush={registerPush}/>
-              </SettingsRow>
+              </div>
             </SettingsGroup>
 
             <button onClick={handleLogout} style={{width:"100%",padding:15,marginTop:8,background:"none",border:"1px solid rgba(255,90,95,0.3)",color:D.danger,borderRadius:D.r12,cursor:"pointer",fontSize:15,fontWeight:600}}>Sign Out</button>
