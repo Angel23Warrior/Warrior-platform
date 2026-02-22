@@ -1,690 +1,579 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
+import { WW_LOGO, B49_LOGO } from "./logos.js";
 
 const SUPABASE_URL = "https://ntcsjtyiefusaqsehgfl.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im50Y3NqdHlpZWZ1c2Fxc2VoZ2ZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3MjU4MzcsImV4cCI6MjA4NzMwMTgzN30.NRlzdtfR6BiEwZGRe5VJKVlo8i5-qmI9cmUkzHgTgV8";
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-import { WW_LOGO, B49_LOGO } from "./logos.js";
-
-const CORE4 = [
-  { id:"movement", icon:"⚡", label:"15 Min Movement",       desc:"Train, stretch, or sweat — move your body first." },
-  { id:"god",      icon:"🙏", label:"15 Min With God",        desc:"Prayer, meditation, or quiet reflection." },
-  { id:"vanity",   icon:"💌", label:"2 Vanity Notes",         desc:"Thank someone or express love — 2 notes before the world wakes." },
-  { id:"business", icon:"📖", label:"Business Listen / Read", desc:"Consume, capture a key insight, share it." },
-];
-
-const GOAL_COLORS = ["#c9a84c","#4caf50","#2196f3","#e91e63","#9c27b0","#00bcd4","#ff5722","#8bc34a"];
-const MF = "'Barlow Condensed','Oswald','Impact',sans-serif";
-const BF = "'Avenir Next','Avenir','Century Gothic',sans-serif";
-
-// ── Theme definitions ──────────────────────────────────────────────────────
-const THEMES = {
-  light: {
-    bg:         "#f7f4ef",
-    card:       "#ffffff",
-    cardBorder: "#e0d8cc",
-    cardBorderTop: "#c9a84c",
-    text:       "#1a1a2e",
-    textSub:    "#8a7a6a",
-    textMuted:  "#aaaaaa",
-    sectionText:"#1B3A5C",
-    inputBg:    "#ffffff",
-    inputBorder:"#dddddd",
-    inputText:  "#1a1a2e",
-    progressBg: "#e8e0d4",
-    rankBg:     "#dddddd",
-    rankText:   "#666666",
-    youBg:      "linear-gradient(135deg,#eef4fa,#e8f0e8)",
-    youBorder:  "#1B6CA8",
-    scoringBg:  "#ffffff",
-    futureCard: "#f9f7f4",
-  },
-  dark: {
-    bg:         "#0a0a0a",
-    card:       "#111111",
-    cardBorder: "#2a1e14",
-    cardBorderTop: "#c9a84c",
-    text:       "#f0e6d3",
-    textSub:    "#7a6a5a",
-    textMuted:  "#5a4a3a",
-    sectionText:"#c9a84c",
-    inputBg:    "#1a1410",
-    inputBorder:"#3a2a1a",
-    inputText:  "#f0e6d3",
-    progressBg: "#2a1e14",
-    rankBg:     "#2a1a0a",
-    rankText:   "#9a7a5a",
-    youBg:      "linear-gradient(135deg,#1a2a0a,#1e1410)",
-    youBorder:  "#4a7a20",
-    scoringBg:  "#111111",
-    futureCard: "#0d0d0d",
-  }
+const D = {
+  bg:"#070A0F", surface:"#0D1220", surface2:"#111A2D",
+  divider:"rgba(255,255,255,0.08)",
+  textPrimary:"rgba(255,255,255,0.92)", textSec:"rgba(255,255,255,0.62)", textTert:"rgba(255,255,255,0.38)",
+  brand:"#D6B25E", brandMuted:"rgba(214,178,94,0.14)",
+  success:"#35C18B", successMuted:"rgba(53,193,139,0.12)",
+  danger:"#FF5A5F", warning:"#FFCC66",
+  r16:16, r12:12, r10:10, r8:8,
 };
+const FF="'Barlow Condensed','Oswald',sans-serif";
+const FB="-apple-system,'SF Pro Display','Helvetica Neue',sans-serif";
+const CORE4=[
+  {id:"movement",icon:"⚡",label:"15 Min Movement",desc:"Train, stretch, or sweat."},
+  {id:"god",icon:"🙏",label:"15 Min With God",desc:"Prayer, meditation, reflection."},
+  {id:"vanity",icon:"💌",label:"2 Vanity Notes",desc:"Express gratitude or love."},
+  {id:"business",icon:"📖",label:"Business Listen / Read",desc:"Learn something. Share it."},
+];
+const GOAL_COLORS=["#D6B25E","#35C18B","#4A9EF5","#E06FBF","#A78BFA","#F59E4A","#F87171","#6EE7B7"];
+function todayStr(){return new Date().toISOString().slice(0,10);}
 
-function todayStr() { return new Date().toISOString().slice(0,10); }
+const GS=()=>(
+  <style>{`
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+    body{margin:0;padding:0;background:${D.bg};font-family:${FB};}
+    input,textarea,button{font-family:inherit;}
+    ::-webkit-scrollbar{width:0;}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+    @keyframes popIn{0%{transform:scale(0.85);opacity:0;}70%{transform:scale(1.05);}100%{transform:scale(1);opacity:1;}}
+    @keyframes confettiFall{0%{transform:translateY(-20px) rotate(0deg);opacity:1;}100%{transform:translateY(80px) rotate(360deg);opacity:0;}}
+    @keyframes erupt{0%{transform:translateY(60px);opacity:0;}60%{transform:translateY(-10px);opacity:1;}80%{transform:translateY(4px);}100%{transform:translateY(0);opacity:1;}}
+    @keyframes rootGrow{from{opacity:0;transform:scaleY(0);transform-origin:top center;}to{opacity:1;transform:scaleY(1);transform-origin:top center;}}
+    @keyframes dirtFly{0%{opacity:0;transform:translate(0,0) scale(0);}40%{opacity:1;}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1.5);}}
+    @keyframes glowPulse{0%,100%{filter:drop-shadow(0 0 8px rgba(214,178,94,0.4));}50%{filter:drop-shadow(0 0 20px rgba(214,178,94,0.9));}}
+    .task-row:active{transform:scale(0.98);}
+  `}</style>
+);
 
-export default function WarriorPlatform() {
-  const [screen, setScreen]       = useState("loading");
-  const [user, setUser]           = useState(null);
-  const [profile, setProfile]     = useState(null);
-  const [todayLog, setTodayLog]   = useState({});
-  const [goals, setGoals]         = useState([]);
-  const [goalCompletions, setGoalCompletions] = useState([]);
-  const [allLogs, setAllLogs]     = useState([]);
-  const [leaderboard, setLeaderboard] = useState([]);
-  const [loading, setLoading]     = useState(false);
-  const [authMode, setAuthMode]   = useState("login");
-  const [email, setEmail]         = useState("");
-  const [password, setPassword]   = useState("");
-  const [name, setName]           = useState("");
-  const [authError, setAuthError] = useState("");
-  const [calYear, setCalYear]       = useState(new Date().getFullYear());
-  const [editRequests, setEditRequests] = useState([]);
-  const [requestReason, setRequestReason] = useState("");
-  const [requestingDate, setRequestingDate] = useState(null);
-  const [requestMsg, setRequestMsg] = useState("");
-  const [selectedDate, setSelectedDate] = useState(todayStr());
-  const [calMonth, setCalMonth]   = useState(new Date().getMonth());
-  const [darkMode, setDarkMode]   = useState(() => {
-    try { return localStorage.getItem("warrior-dark") === "true"; } catch { return false; }
-  });
+export default function App(){
+  const [screen,setScreen]=useState("loading");
+  const [user,setUser]=useState(null);
+  const [profile,setProfile]=useState(null);
+  const [allLogs,setAllLogs]=useState([]);
+  const [goals,setGoals]=useState([]);
+  const [goalCompletions,setGoalCompletions]=useState([]);
+  const [leaderboard,setLeaderboard]=useState([]);
+  const [editRequests,setEditRequests]=useState([]);
+  const [selectedDate,setSelectedDate]=useState(todayStr());
+  const [calYear,setCalYear]=useState(new Date().getFullYear());
+  const [calMonth,setCalMonth]=useState(new Date().getMonth());
+  const [showConfetti,setShowConfetti]=useState(false);
+  const [showAddGoal,setShowAddGoal]=useState(false);
+  const [authMode,setAuthMode]=useState("login");
+  const [email,setEmail]=useState("");
+  const [password,setPassword]=useState("");
+  const [uname,setUname]=useState("");
+  const [authError,setAuthError]=useState("");
+  const [loading,setLoading]=useState(false);
+  const [requestReason,setRequestReason]=useState("");
+  const [requestMsg,setRequestMsg]=useState("");
+  const [darkMode,setDarkMode]=useState(true);
+  const prevC4=useRef(0);
 
-  const T = THEMES[darkMode ? "dark" : "light"];
-
-  useEffect(() => {
-    try { localStorage.setItem("warrior-dark", darkMode); } catch {}
-  }, [darkMode]);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) { setUser(session.user); loadUserData(session.user.id); setScreen("dashboard"); }
+  useEffect(()=>{
+    const minLoad=new Promise(r=>setTimeout(r,2800));
+    const sess=supabase.auth.getSession().then(({data:{session}})=>session);
+    Promise.all([minLoad,sess]).then(([,session])=>{
+      if(session?.user){setUser(session.user);loadUserData(session.user.id);setScreen("dashboard");}
       else setScreen("login");
     });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
-      if (session?.user) { setUser(session.user); loadUserData(session.user.id); setScreen("dashboard"); }
-      else { setUser(null); setScreen("login"); }
+    const {data:{subscription}}=supabase.auth.onAuthStateChange((_e,session)=>{
+      if(session?.user){setUser(session.user);loadUserData(session.user.id);setScreen("dashboard");}
+      else{setUser(null);setScreen("login");}
     });
-    return () => subscription.unsubscribe();
-  }, []);
+    return()=>subscription.unsubscribe();
+  },[]);
 
-  async function loadUserData(uid) {
-    const { data: prof } = await supabase.from("profiles").select("*").eq("id", uid).single();
+  async function loadUserData(uid){
+    const {data:prof}=await supabase.from("profiles").select("*").eq("id",uid).single();
     setProfile(prof);
-    const { data: log } = await supabase.from("daily_logs").select("*").eq("user_id", uid).eq("log_date", todayStr()).single();
-    setTodayLog(log || {});
-    const { data: logs } = await supabase.from("daily_logs").select("*").eq("user_id", uid);
-    setAllLogs(logs || []);
-    const { data: g } = await supabase.from("goals").select("*").eq("user_id", uid);
-    setGoals(g || []);
-    const { data: gc } = await supabase.from("goal_completions").select("*").eq("user_id", uid);
-    setGoalCompletions(gc || []);
+    const {data:logs}=await supabase.from("daily_logs").select("*").eq("user_id",uid);
+    setAllLogs(logs||[]);
+    const {data:g}=await supabase.from("goals").select("*").eq("user_id",uid);
+    setGoals(g||[]);
+    const {data:gc}=await supabase.from("goal_completions").select("*").eq("user_id",uid);
+    setGoalCompletions(gc||[]);
     await loadLeaderboard();
     await loadEditRequests(uid);
   }
 
-  async function loadEditRequests(uid) {
-    const { data: profData } = await supabase.from("profiles").select("role").eq("id", uid).single();
-    if (profData?.role === "manager") {
-      // Load all requests first
-      const { data: requests } = await supabase
-        .from("edit_requests")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (!requests) { setEditRequests([]); return; }
-      // Then load profile names separately
-      const { data: profiles } = await supabase.from("profiles").select("id, name, email");
-      const profileMap = {};
-      (profiles || []).forEach(p => { profileMap[p.id] = p; });
-      const enriched = requests.map(r => ({ ...r, profiles: profileMap[r.user_id] || null }));
-      setEditRequests(enriched);
-    } else {
-      const { data } = await supabase
-        .from("edit_requests")
-        .select("*")
-        .eq("user_id", uid)
-        .order("created_at", { ascending: false });
-      setEditRequests(data || []);
-    }
-  }
-
-  async function loadLeaderboard() {
-    const { data: profiles } = await supabase.from("profiles").select("*");
-    const { data: logs }     = await supabase.from("daily_logs").select("*");
-    const { data: gcs }      = await supabase.from("goal_completions").select("*");
-    if (!profiles) return;
-    const board = profiles.map(p => {
-      const uLogs = (logs||[]).filter(l => l.user_id===p.id);
-      const uGCs  = (gcs||[]).filter(g => g.user_id===p.id);
-      let score = 0;
-      for (const l of uLogs) {
-        const c4 = [l.movement,l.god,l.vanity,l.business].filter(Boolean).length;
-        score += c4*10; if (c4===4) score+=20;
-      }
-      score += uGCs.length*5;
-      let streak=0;
-      const today=new Date();
-      for(let i=0;i<365;i++){
-        const d=new Date(today); d.setDate(today.getDate()-i);
-        const k=d.toISOString().slice(0,10);
-        const l=uLogs.find(x=>x.log_date===k);
-        if(l&&l.movement&&l.god&&l.vanity&&l.business) streak++;
-        else if(i>0) break;
-      }
-      const fullDays = uLogs.filter(l=>l.movement&&l.god&&l.vanity&&l.business).length;
-      return { ...p, score, streak, fullDays };
+  async function loadLeaderboard(){
+    const {data:profiles}=await supabase.from("profiles").select("*");
+    const {data:logs}=await supabase.from("daily_logs").select("*");
+    const {data:gcs}=await supabase.from("goal_completions").select("*");
+    if(!profiles)return;
+    const board=profiles.map(p=>{
+      const uL=(logs||[]).filter(l=>l.user_id===p.id);
+      const uG=(gcs||[]).filter(g=>g.user_id===p.id);
+      let s=0;
+      for(const l of uL){const c4=[l.movement,l.god,l.vanity,l.business].filter(Boolean).length;s+=c4*10;if(c4===4)s+=20;}
+      s+=uG.length*5;
+      let streak=0;const t=new Date();
+      for(let i=0;i<365;i++){const d=new Date(t);d.setDate(t.getDate()-i);const k=d.toISOString().slice(0,10);const l=uL.find(x=>x.log_date===k);if(l&&l.movement&&l.god&&l.vanity&&l.business)streak++;else if(i>0)break;}
+      return{...p,score:s,streak,fullDays:uL.filter(l=>l.movement&&l.god&&l.vanity&&l.business).length};
     });
     setLeaderboard(board.sort((a,b)=>b.score-a.score));
   }
 
-  async function handleSignup() {
-    if (!email||!password||!name) { setAuthError("Please fill in all fields."); return; }
-    setLoading(true); setAuthError("");
-    const { error } = await supabase.auth.signUp({ email, password, options:{ data:{ name } } });
-    if (error) setAuthError(error.message);
-    else setAuthError("✅ Check your email to confirm your account, then sign in.");
+  async function loadEditRequests(uid){
+    const {data:pd}=await supabase.from("profiles").select("role").eq("id",uid).single();
+    if(pd?.role==="manager"){
+      const {data:reqs}=await supabase.from("edit_requests").select("*").order("created_at",{ascending:false});
+      if(!reqs){setEditRequests([]);return;}
+      const {data:profs}=await supabase.from("profiles").select("id,name,email");
+      const pm={};(profs||[]).forEach(p=>{pm[p.id]=p;});
+      setEditRequests(reqs.map(r=>({...r,profiles:pm[r.user_id]||null})));
+    }else{
+      const {data}=await supabase.from("edit_requests").select("*").eq("user_id",uid).order("created_at",{ascending:false});
+      setEditRequests(data||[]);
+    }
+  }
+
+  async function handleLogin(){
+    if(!email||!password){setAuthError("Please fill in all fields.");return;}
+    setLoading(true);setAuthError("");
+    const {error}=await supabase.auth.signInWithPassword({email,password});
+    if(error)setAuthError(error.message);
     setLoading(false);
   }
 
-  async function handleLogin() {
-    if (!email||!password) { setAuthError("Please enter email and password."); return; }
-    setLoading(true); setAuthError("");
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) setAuthError(error.message);
+  async function handleSignup(){
+    if(!email||!password||!uname){setAuthError("Please fill in all fields.");return;}
+    setLoading(true);setAuthError("");
+    const {error}=await supabase.auth.signUp({email,password,options:{data:{name:uname}}});
+    if(error)setAuthError(error.message);
+    else setAuthError("✅ Check your email to confirm, then sign in.");
     setLoading(false);
   }
 
-  async function handleLogout() { await supabase.auth.signOut(); }
+  async function handleLogout(){await supabase.auth.signOut();}
 
-  function isPastDay(dateStr) {
-    return dateStr < todayStr();
-  }
+  function isPastDay(d){return d<todayStr();}
+  function hasApprovedRequest(d){return editRequests.some(r=>r.requested_date===d&&r.status==="approved");}
 
-  function hasApprovedRequest(dateStr) {
-    return editRequests.some(r => r.requested_date === dateStr && r.status === "approved");
-  }
-
-  async function toggleCore4(field) {
-    const dateKey = selectedDate;
-    const currentLog = allLogs.find(l=>l.log_date===dateKey) || {};
-    const newVal = !currentLog[field];
-    if (currentLog.id) {
-      await supabase.from("daily_logs").update({ [field]:newVal }).eq("id", currentLog.id);
-    } else {
-      const { data } = await supabase.from("daily_logs").insert({ user_id:user.id, log_date:dateKey, [field]:newVal }).select().single();
-      if (data) {
-        setAllLogs(prev => [...prev.filter(l=>l.log_date!==dateKey), data]);
-        if (dateKey===todayStr()) setTodayLog(data);
-        await loadLeaderboard();
-        return;
-      }
+  async function toggleCore4(field){
+    const dk=selectedDate;
+    const cur=allLogs.find(l=>l.log_date===dk)||{};
+    const nv=!cur[field];
+    if(cur.id){await supabase.from("daily_logs").update({[field]:nv}).eq("id",cur.id);}
+    else{
+      const {data}=await supabase.from("daily_logs").insert({user_id:user.id,log_date:dk,[field]:nv}).select().single();
+      if(data){setAllLogs(prev=>[...prev.filter(l=>l.log_date!==dk),data]);await loadLeaderboard();return;}
     }
-    const updated = { ...currentLog, [field]:newVal };
-    setAllLogs(prev => [...prev.filter(l=>l.log_date!==dateKey), { ...updated, log_date:dateKey }]);
-    if (dateKey===todayStr()) setTodayLog(updated);
+    const upd={...cur,[field]:nv};
+    setAllLogs(prev=>[...prev.filter(l=>l.log_date!==dk),{...upd,log_date:dk}]);
+    const nd=CORE4.filter(c=>c.id===field?nv:!!(allLogs.find(l=>l.log_date===dk)||{})[c.id]).length;
+    if(nd===4&&prevC4.current<4){setShowConfetti(true);setTimeout(()=>setShowConfetti(false),2500);}
+    prevC4.current=nd;
     await loadLeaderboard();
   }
 
-  async function toggleGoalCompletion(goalId) {
-    const dateKey = selectedDate;
-    const exists = goalCompletions.find(gc=>gc.goal_id===goalId&&gc.completion_date===dateKey);
-    if (exists) {
-      await supabase.from("goal_completions").delete().eq("id", exists.id);
-      setGoalCompletions(prev=>prev.filter(gc=>gc.id!==exists.id));
-    } else {
-      const { data } = await supabase.from("goal_completions").insert({ user_id:user.id, goal_id:goalId, completion_date:dateKey }).select().single();
-      if (data) setGoalCompletions(prev=>[...prev,data]);
-    }
+  async function toggleGoalCompletion(goalId){
+    const dk=selectedDate;
+    const ex=goalCompletions.find(gc=>gc.goal_id===goalId&&gc.completion_date===dk);
+    if(ex){await supabase.from("goal_completions").delete().eq("id",ex.id);setGoalCompletions(prev=>prev.filter(gc=>gc.id!==ex.id));}
+    else{const {data}=await supabase.from("goal_completions").insert({user_id:user.id,goal_id:goalId,completion_date:dk}).select().single();if(data)setGoalCompletions(prev=>[...prev,data]);}
     await loadLeaderboard();
   }
 
-  async function togglePrivate() {
-    const newVal = !profile.is_private;
-    await supabase.from("profiles").update({ is_private:newVal }).eq("id", user.id);
-    setProfile(p=>({...p,is_private:newVal}));
+  async function togglePrivate(){
+    const nv=!profile.is_private;
+    await supabase.from("profiles").update({is_private:nv}).eq("id",user.id);
+    setProfile(p=>({...p,is_private:nv}));
     await loadLeaderboard();
   }
 
-  async function submitEditRequest() {
-    if (!requestReason.trim()) return;
+  async function submitEditRequest(){
+    if(!requestReason.trim())return;
     setRequestMsg("");
-    const { error } = await supabase.from("edit_requests").insert({
-      user_id: user.id,
-      requested_date: requestingDate,
-      reason: requestReason.trim(),
-      status: "pending"
-    });
-    if (error) {
-      setRequestMsg("❌ Error submitting request. Please try again.");
-    } else {
-      setRequestMsg("✅ Request sent to your manager!");
-      setRequestReason("");
-      setRequestingDate(null);
-      await loadEditRequests(user.id);
-    }
+    const {error}=await supabase.from("edit_requests").insert({user_id:user.id,requested_date:selectedDate,reason:requestReason.trim(),status:"pending"});
+    if(error)setRequestMsg("❌ Error submitting.");
+    else{setRequestMsg("✅ Request sent!");setRequestReason("");await loadEditRequests(user.id);}
   }
 
-  async function reviewEditRequest(requestId, status) {
-    await supabase.from("edit_requests").update({
-      status,
-      reviewed_by: user.id,
-      reviewed_at: new Date().toISOString()
-    }).eq("id", requestId);
+  async function reviewEditRequest(id,status){
+    await supabase.from("edit_requests").update({status,reviewed_by:user.id,reviewed_at:new Date().toISOString()}).eq("id",id);
     await loadEditRequests(user.id);
   }
 
-  const streak     = (() => { let s=0; const t=new Date(); for(let i=0;i<365;i++){const d=new Date(t);d.setDate(t.getDate()-i);const k=d.toISOString().slice(0,10);const l=allLogs.find(x=>x.log_date===k);if(l&&l.movement&&l.god&&l.vanity&&l.business)s++;else if(i>0)break;}return s;})();
-  const score      = (() => { let s=0; for(const l of allLogs){const c4=[l.movement,l.god,l.vanity,l.business].filter(Boolean).length;s+=c4*10;if(c4===4)s+=20;} s+=goalCompletions.length*5; return s; })();
-  const selectedLog = allLogs.find(l=>l.log_date===selectedDate) || {};
-  const core4Done  = ["movement","god","vanity","business"].filter(f=>selectedLog[f]).length;
-  const joinDate   = profile?.join_date ? new Date(profile.join_date) : new Date();
-  const now2 = new Date();
-  const daysInCurrentMonth = new Date(now2.getFullYear(), now2.getMonth()+1, 0).getDate();
-  const daysPassed = now2.getDate();
-  const journeyPct = Math.round(((daysPassed-1)/daysInCurrentMonth)*100);
-  const monthPrefix = now2.toISOString().slice(0,7);
-  const fullDays = allLogs.filter(l=>l.log_date.startsWith(monthPrefix)&&l.movement&&l.god&&l.vanity&&l.business).length;
-  const completionPct = Math.round((fullDays/daysInCurrentMonth)*100);
+  const selLog=allLogs.find(l=>l.log_date===selectedDate)||{};
+  const core4Done=CORE4.filter(c=>selLog[c.id]).length;
+  const streak=(()=>{let s=0;const t=new Date();for(let i=0;i<365;i++){const d=new Date(t);d.setDate(t.getDate()-i);const k=d.toISOString().slice(0,10);const l=allLogs.find(x=>x.log_date===k);if(l&&l.movement&&l.god&&l.vanity&&l.business)s++;else if(i>0)break;}return s;})();
+  const score=(()=>{let s=0;for(const l of allLogs){const c4=[l.movement,l.god,l.vanity,l.business].filter(Boolean).length;s+=c4*10;if(c4===4)s+=20;}s+=goalCompletions.length*5;return s;})();
+  const now2=new Date();
+  const daysInMonth=new Date(now2.getFullYear(),now2.getMonth()+1,0).getDate();
+  const monthPrefix=now2.toISOString().slice(0,7);
+  const fullDays=allLogs.filter(l=>l.log_date.startsWith(monthPrefix)&&l.movement&&l.god&&l.vanity&&l.business).length;
+  const monthPct=Math.round((fullDays/daysInMonth)*100);
+  const ringPct=(core4Done/4)*100;
 
-  if (screen==="loading") return <Loader />;
-  if (screen==="login"||screen==="signup") return (
+  if(screen==="loading")return <LoadingScreen/>;
+  if(screen==="login"||screen==="signup")return(
     <AuthScreen mode={authMode} setMode={setAuthMode} email={email} setEmail={setEmail}
-      password={password} setPassword={setPassword} name={name} setName={setName}
-      onLogin={handleLogin} onSignup={handleSignup} loading={loading} error={authError} />
+      password={password} setPassword={setPassword} name={uname} setName={setUname}
+      onLogin={handleLogin} onSignup={handleSignup} loading={loading} error={authError}/>
   );
 
-  return (
-    <div style={{ minHeight:"100vh", background:T.bg, color:T.text, fontFamily:BF, transition:"background 0.3s, color 0.3s" }}>
+  const tabs=[
+    {id:"dashboard",label:"Today",icon:"⚡"},
+    {id:"calendar",label:"Calendar",icon:"📅"},
+    {id:"leaderboard",label:"Board",icon:"🏆"},
+    {id:"goals",label:"Goals",icon:"🎯"},
+    {id:"settings",label:"Settings",icon:"⚙️"},
+    ...(profile?.role==="manager"?[{id:"admin",label:"Admin",icon:"🛡️"}]:[]),
+  ];
 
-      {/* ── HEADER ── */}
-      <div style={{ background:"linear-gradient(135deg,#0d1b2a 0%,#1B3A5C 100%)", borderBottom:"3px solid #c9a84c", padding:"18px 20px" }}>
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:16, marginBottom:12, flexWrap:"wrap" }}>
-          <LogoBox src={WW_LOGO} alt="Warrior Week" />
-          <div style={{ fontSize:28, color:"#c9a84c", fontWeight:700, fontFamily:MF }}>×</div>
-          <LogoBox src={B49_LOGO} alt="Branch 49" />
-        </div>
-        <div style={{ textAlign:"center", marginBottom:12 }}>
-          <div style={{ fontSize:32, fontFamily:MF, fontWeight:700, letterSpacing:4, color:"#fff", textTransform:"uppercase", textShadow:"0 2px 8px rgba(0,0,0,0.5)" }}>POWER HOUR PLATFORM</div>
-          <div style={{ fontSize:13, color:"#c9a84c", letterSpacing:3, textTransform:"uppercase", fontFamily:MF, fontWeight:700 }}>#WARRIORSWAY</div>
-          <div style={{ fontSize:11, color:"#8da0b5", letterSpacing:2, marginTop:2 }}>REAL • RAW • RELEVANT • RESULTS</div>
-        </div>
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, flexWrap:"wrap", marginBottom:14 }}>
-          <div style={{ fontSize:13, color:"#c9a84c", fontFamily:MF, letterSpacing:1 }}>{profile?.name?.toUpperCase()}</div>
-          <GoldChip>🔥 {streak} STREAK</GoldChip>
-          <GoldChip>⭐ {score} PTS</GoldChip>
-          <button onClick={()=>setDarkMode(d=>!d)} style={{ background:"none", border:"1px solid #c9a84c44", color:"#8da0b5", padding:"4px 12px", borderRadius:20, cursor:"pointer", fontSize:13, fontFamily:MF, letterSpacing:1 }}>
-            {darkMode ? "☀️ LIGHT" : "🌙 DARK"}
-          </button>
-          <button onClick={togglePrivate} style={{ background:"none", border:"1px solid #c9a84c44", color:"#8da0b5", padding:"4px 12px", borderRadius:20, cursor:"pointer", fontSize:11, fontFamily:BF }}>
-            {profile?.is_private?"🔒 Private":"🌐 Sharing"}
-          </button>
-          <button onClick={handleLogout} style={{ background:"none", border:"1px solid #ffffff22", color:"#5a7a9a", padding:"4px 12px", borderRadius:20, cursor:"pointer", fontSize:11, fontFamily:BF }}>
-            Sign Out
-          </button>
-        </div>
-        <div style={{ padding:"0 4px" }}>
-          <ProgressBar label="30-Day Journey" right={`${now2.toLocaleString("default",{month:"long"})} — Day ${daysPassed} of ${daysInCurrentMonth}`} pct={journeyPct} color="linear-gradient(90deg,#c9a84c,#e8c96c)" />
-          <div style={{ marginTop:8 }} />
-          <ProgressBar label="Core 4 Completion" right={`${fullDays} full days this month — ${completionPct}%`} pct={completionPct} color="linear-gradient(90deg,#2a7a2a,#4caf50)" />
-        </div>
-      </div>
+  return(
+    <div style={{minHeight:"100vh",background:D.bg,color:D.textPrimary,fontFamily:FB,paddingBottom:84}}>
+      <GS/>
 
-      {/* ── NAV ── */}
-      <div style={{ display:"flex", background:"#0d1b2a", borderBottom:"1px solid #c9a84c33", overflowX:"auto" }}>
-        {[["dashboard","Today"],["calendar","Calendar"],["leaderboard","Leaderboard"],["goals","My Goals"], ...(profile?.role==="manager"?[["admin","⚔️ Admin"]]:[])].map(([id,label])=>(
-          <button key={id} onClick={()=>setScreen(id)} style={{
-            padding:"12px 20px", border:"none", background:"none",
-            color:screen===id?"#c9a84c":"#5a7a9a",
-            borderBottom:screen===id?"2px solid #c9a84c":"2px solid transparent",
-            cursor:"pointer", fontSize:13, letterSpacing:2, textTransform:"uppercase",
-            fontFamily:MF, fontWeight:700, whiteSpace:"nowrap",
-          }}>{label}</button>
-        ))}
-      </div>
+      {/* Confetti */}
+      {showConfetti&&(
+        <div style={{position:"fixed",top:0,left:0,right:0,zIndex:999,pointerEvents:"none",height:200}}>
+          {Array.from({length:24},(_,i)=>(
+            <div key={i} style={{position:"absolute",left:`${5+Math.random()*90}%`,width:7,height:7,borderRadius:i%2===0?"50%":2,background:[D.brand,D.success,"#4A9EF5","#fff"][i%4],animation:`confettiFall ${0.8+Math.random()*1.2}s ease-out ${Math.random()*0.4}s forwards`}}/>
+          ))}
+        </div>
+      )}
 
-      <div style={{ maxWidth:760, margin:"0 auto", padding:"24px 16px" }}>
-
-        {/* ── TODAY ── */}
-        {screen==="dashboard" && (
+      {/* Top Bar */}
+      <div style={{position:"sticky",top:0,zIndex:100,background:"rgba(7,10,15,0.94)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderBottom:`1px solid ${D.divider}`,padding:"14px 20px 12px"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",maxWidth:600,margin:"0 auto"}}>
           <div>
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))", gap:12, marginBottom:24 }}>
-              {[
-                { label: selectedDate===todayStr()?"Core 4 Today":"That Day", value:`${core4Done}/4`, sub:core4Done===4?"🔥 Full Power Hour!":selectedDate===todayStr()?"keep going":"retroactive" },
-                { label:"Streak",       value:`${streak}d`,     sub:"consecutive days" },
-                { label:"Points",       value:score,            sub:"warrior points" },
-                { label:"Days Logged",  value:allLogs.length,   sub:"total check-ins" },
-              ].map(s=>(
-                <div key={s.label} style={{ background:T.card, border:`1px solid ${T.cardBorder}`, borderTop:`3px solid ${T.cardBorderTop}`, borderRadius:6, padding:"14px 16px", transition:"background 0.3s" }}>
-                  <div style={{ fontSize:11, color:T.textSub, textTransform:"uppercase", letterSpacing:2, marginBottom:4, fontFamily:MF, fontWeight:700 }}>{s.label}</div>
-                  <div style={{ fontSize:30, fontWeight:700, color:T.sectionText, lineHeight:1, fontFamily:MF }}>{s.value}</div>
-                  <div style={{ fontSize:11, color:T.textMuted, marginTop:4 }}>{s.sub}</div>
+            <div style={{fontSize:22,fontWeight:700,color:D.textPrimary,fontFamily:FF,letterSpacing:2,lineHeight:1}}>Power Hour</div>
+            <div style={{fontSize:12,color:D.textTert,marginTop:3,display:"flex",gap:10,alignItems:"center"}}>
+              <span style={{color:D.brand,fontWeight:600}}>{score} pts</span>
+              <span style={{opacity:0.4}}>·</span>
+              <span>{streak}d streak</span>
+              <span style={{opacity:0.4}}>·</span>
+              <span>{profile?.name}</span>
+            </div>
+          </div>
+          <button onClick={()=>setScreen("settings")} style={{width:36,height:36,borderRadius:"50%",border:`1px solid ${D.divider}`,background:D.surface,color:D.textSec,cursor:"pointer",fontSize:15,display:"flex",alignItems:"center",justifyContent:"center"}}>⚙️</button>
+        </div>
+      </div>
+
+      <div style={{maxWidth:600,margin:"0 auto",padding:"20px 20px 0"}}>
+
+        {/* TODAY */}
+        {screen==="dashboard"&&(
+          <div style={{animation:"fadeUp 0.35s ease both"}}>
+            {selectedDate!==todayStr()&&(
+              <div style={{background:D.surface,borderRadius:D.r12,padding:"10px 16px",marginBottom:16,display:"flex",justifyContent:"space-between",alignItems:"center",border:`1px solid ${D.divider}`}}>
+                <span style={{fontSize:14,color:D.textSec}}>{new Date(selectedDate+"T12:00:00").toLocaleDateString("default",{weekday:"long",month:"long",day:"numeric"})}</span>
+                <button onClick={()=>setSelectedDate(todayStr())} style={{background:"none",border:"none",color:D.brand,cursor:"pointer",fontSize:13,fontWeight:600}}>← Today</button>
+              </div>
+            )}
+
+            {/* Progress Ring Card */}
+            <div style={{background:D.surface,borderRadius:D.r16,padding:"28px 20px 24px",marginBottom:16,textAlign:"center",boxShadow:"0 10px 30px rgba(0,0,0,0.35)",border:`1px solid ${D.divider}`}}>
+              <ProgressRing pct={ringPct} done={core4Done}/>
+              <div style={{fontSize:14,color:D.textSec,marginTop:14,letterSpacing:0.2}}>
+                {core4Done===4?"🔥 You won today.":core4Done===0?"Core 4. No excuses.":"Keep going. Win the day."}
+              </div>
+              <div style={{display:"flex",justifyContent:"center",gap:10,marginTop:18,flexWrap:"wrap"}}>
+                {[{label:"pts",value:score},{label:"streak",value:`${streak}d`},{label:"logged",value:`${allLogs.length}d`}].map(s=>(
+                  <div key={s.label} style={{background:D.bg,borderRadius:D.r12,padding:"8px 16px",border:`1px solid ${D.divider}`}}>
+                    <div style={{fontSize:18,fontWeight:700,color:D.brand,fontFamily:FF,lineHeight:1}}>{s.value}</div>
+                    <div style={{fontSize:11,color:D.textTert,marginTop:2}}>{s.label}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{marginTop:18,textAlign:"left"}}>
+                <div style={{display:"flex",justifyContent:"space-between",fontSize:12,color:D.textTert,marginBottom:6}}>
+                  <span>{now2.toLocaleString("default",{month:"long"})} completion</span>
+                  <span style={{color:D.brand}}>{fullDays} full days · {monthPct}%</span>
                 </div>
-              ))}
+                <div style={{background:D.bg,borderRadius:4,height:4,overflow:"hidden"}}>
+                  <div style={{height:"100%",width:`${monthPct}%`,background:`linear-gradient(90deg,${D.brand},#F0D080)`,borderRadius:4,transition:"width 0.6s ease"}}/>
+                </div>
+              </div>
             </div>
 
-            <SectionHeader T={T}>
-              ⚡ {selectedDate === todayStr() ? "Core 4 Power Hour — Today" : `Check-In: ${new Date(selectedDate + "T12:00:00").toLocaleDateString('default',{weekday:'long',month:'long',day:'numeric'})}`}
-            </SectionHeader>
-
-            {/* Past day gating */}
-            {isPastDay(selectedDate) && !hasApprovedRequest(selectedDate) ? (
-              <div style={{ background:T.card, border:`1px solid ${T.cardBorder}`, borderLeft:"4px solid #c9a84c", borderRadius:8, padding:24, marginBottom:16 }}>
-                <div style={{ fontSize:18, fontFamily:MF, fontWeight:700, color:T.sectionText, letterSpacing:2, textTransform:"uppercase", marginBottom:8 }}>
-                  🔒 Edit Request Required
-                </div>
-                <div style={{ fontSize:13, color:T.textSub, marginBottom:16, lineHeight:1.7 }}>
-                  To edit a past day you need manager approval. Tell them why you missed logging this day.
-                </div>
-                {editRequests.some(r=>r.requested_date===selectedDate&&r.status==="pending") ? (
-                  <div style={{ background:"#c9a84c22", border:"1px solid #c9a84c55", borderRadius:6, padding:"12px 16px", fontSize:13, color:"#c9a84c", fontFamily:MF, letterSpacing:1 }}>
-                    ⏳ REQUEST PENDING — Waiting for manager approval
-                  </div>
-                ) : editRequests.some(r=>r.requested_date===selectedDate&&r.status==="denied") ? (
-                  <div style={{ background:"#ff000015", border:"1px solid #ff000044", borderRadius:6, padding:"12px 16px", fontSize:13, color:"#ff6b6b", fontFamily:MF, letterSpacing:1 }}>
-                    ❌ REQUEST DENIED — Contact your manager directly
-                  </div>
-                ) : (
-                  <>
-                    <textarea
-                      value={requestReason}
-                      onChange={e=>setRequestReason(e.target.value)}
-                      placeholder="Why do you need to edit this day? (e.g. forgot to log, was traveling...)"
-                      rows={3}
-                      style={{ width:"100%", background:T.inputBg, border:`1px solid ${T.inputBorder}`, borderRadius:4, padding:"10px 12px", color:T.inputText, fontSize:13, fontFamily:BF, outline:"none", resize:"vertical", boxSizing:"border-box", marginBottom:12 }}
-                    />
-                    {requestMsg && <div style={{ fontSize:12, color:requestMsg.startsWith("✅")?"#4caf50":"#ff6b6b", marginBottom:10 }}>{requestMsg}</div>}
-                    <button onClick={()=>{ setRequestingDate(selectedDate); submitEditRequest(); }}
-                      disabled={!requestReason.trim()}
-                      style={{ background:"linear-gradient(135deg,#c9a84c,#e8c96c)", color:"#0d1b2a", border:"none", padding:"10px 24px", borderRadius:4, cursor:"pointer", fontFamily:MF, fontWeight:700, fontSize:15, letterSpacing:2, textTransform:"uppercase", opacity:!requestReason.trim()?0.5:1 }}>
-                      SEND REQUEST
-                    </button>
-                  </>
-                )}
-              </div>
-            ) : (
-              CORE4.map(item=>(
-                <CheckCard key={item.id} checked={!!(allLogs.find(l=>l.log_date===selectedDate)||{})[item.id]} onClick={()=>toggleCore4(item.id)}
-                  icon={item.icon} label={item.label} desc={item.desc} color="#c9a84c" T={T} />
+            {/* Core 4 */}
+            <SectionLabel>Core 4</SectionLabel>
+            {isPastDay(selectedDate)&&!hasApprovedRequest(selectedDate)?(
+              <EditRequestCard selectedDate={selectedDate} editRequests={editRequests} requestReason={requestReason} setRequestReason={setRequestReason} requestMsg={requestMsg} onSubmit={submitEditRequest}/>
+            ):(
+              CORE4.map((item,i)=>(
+                <TaskRow key={item.id} icon={item.icon} label={item.label} desc={item.desc} checked={!!selLog[item.id]} onClick={()=>toggleCore4(item.id)} delay={i*50}/>
               ))
             )}
 
+            {/* Custom Goals */}
             {goals.length>0&&(
               <>
-                <SectionHeader T={T} style={{ marginTop:24 }}>🎯 My Custom Goals — Today</SectionHeader>
-                {isPastDay(selectedDate) && !hasApprovedRequest(selectedDate) ? (
-                  <div style={{ background:T.card, border:`1px solid ${T.cardBorder}`, borderLeft:"4px solid #c9a84c", borderRadius:8, padding:16, fontSize:13, color:T.textSub, fontFamily:BF }}>
-                    {editRequests.some(r=>r.requested_date===selectedDate&&r.status==="pending")
-                      ? <span style={{ color:"#c9a84c", fontFamily:MF, letterSpacing:1 }}>⏳ REQUEST PENDING — Waiting for manager approval</span>
-                      : editRequests.some(r=>r.requested_date===selectedDate&&r.status==="denied")
-                      ? <span style={{ color:"#ff6b6b", fontFamily:MF, letterSpacing:1 }}>❌ REQUEST DENIED — Contact your manager directly</span>
-                      : "Submit an edit request above to unlock custom goals for this day too."}
+                <SectionLabel style={{marginTop:22}}>Custom Goals</SectionLabel>
+                {isPastDay(selectedDate)&&!hasApprovedRequest(selectedDate)?(
+                  <div style={{background:D.surface,borderRadius:D.r12,padding:"12px 16px",fontSize:13,color:D.textTert,border:`1px solid ${D.divider}`}}>
+                    {editRequests.some(r=>r.requested_date===selectedDate&&r.status==="pending")?<span style={{color:D.warning}}>⏳ Request pending approval</span>:"Submit an edit request above to unlock goals for this day."}
                   </div>
-                ) : (
-                  goals.map(goal=>{
-                    const checked=goalCompletions.some(gc=>gc.goal_id===goal.id&&gc.completion_date===selectedDate);
-                    const doneCount=goalCompletions.filter(gc=>gc.goal_id===goal.id).length;
-                    const pct=Math.min(100,Math.round((doneCount/goal.target)*100));
-                    return(
-                      <div key={goal.id}>
-                        <CheckCard checked={checked} onClick={()=>toggleGoalCompletion(goal.id)}
-                          icon="🎯" label={goal.name} desc={`${doneCount}/${goal.target} ${goal.unit} — ${pct}%`} color={goal.color} T={T} />
-                        <div style={{ margin:"-8px 0 12px 56px", background:T.progressBg, borderRadius:4, height:5, overflow:"hidden" }}>
-                          <div style={{ height:"100%", width:`${pct}%`, background:goal.color, borderRadius:4, transition:"width 0.5s" }} />
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
+                ):goals.map((goal,i)=>{
+                  const checked=goalCompletions.some(gc=>gc.goal_id===goal.id&&gc.completion_date===selectedDate);
+                  const doneCount=goalCompletions.filter(gc=>gc.goal_id===goal.id).length;
+                  const pct=Math.min(100,Math.round((doneCount/goal.target)*100));
+                  return <TaskRow key={goal.id} icon="🎯" label={goal.name} desc={`${doneCount} / ${goal.target} ${goal.unit}`} checked={checked} onClick={()=>toggleGoalCompletion(goal.id)} accent={goal.color} delay={i*50} progress={pct}/>;
+                })}
               </>
             )}
-            <div style={{ marginTop:20, display:"flex", gap:10, flexDirection:"column" }}>
-              {selectedDate!==todayStr()&&(
-                <button onClick={()=>setSelectedDate(todayStr())} style={{ width:"100%", padding:12, background:"none", border:`2px solid #c9a84c`, color:"#c9a84c", borderRadius:6, cursor:"pointer", fontSize:16, fontFamily:MF, fontWeight:700, letterSpacing:2, textTransform:"uppercase" }}>
-                  ← BACK TO TODAY
-                </button>
-              )}
-              <button onClick={()=>setScreen("goals")} style={{ width:"100%", padding:14, background:T.card, border:`2px dashed #c9a84c`, color:T.sectionText, borderRadius:6, cursor:"pointer", fontSize:18, fontFamily:MF, fontWeight:700, letterSpacing:2, textTransform:"uppercase" }}>
-                + ADD CUSTOM GOAL
-              </button>
-            </div>
+            <button onClick={()=>setShowAddGoal(true)} style={{width:"100%",marginTop:12,padding:"14px",background:"none",border:`1px dashed rgba(214,178,94,0.3)`,color:D.brand,borderRadius:D.r12,cursor:"pointer",fontSize:15,fontWeight:600}}>+ Add Custom Goal</button>
           </div>
         )}
 
-        {/* ── MONTHLY CALENDAR ── */}
-        {screen==="calendar" && (() => {
-          const now = new Date();
-          const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
-          const firstDayOfWeek = new Date(calYear, calMonth, 1).getDay();
-          const monthName = new Date(calYear, calMonth, 1).toLocaleString('default', { month:'long' });
-          const DAY_LABELS = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
-          const monthKey = `${calYear}-${String(calMonth+1).padStart(2,'0')}`;
-          const fullThisMonth = allLogs.filter(l=>l.log_date.startsWith(monthKey)&&l.movement&&l.god&&l.vanity&&l.business).length;
-          const isCurrentMonth = calYear===now.getFullYear()&&calMonth===now.getMonth();
-
-          const prevMonth = () => { if(calMonth===0){setCalMonth(11);setCalYear(y=>y-1);}else setCalMonth(m=>m-1); };
-          const nextMonth = () => { if(calMonth===11){setCalMonth(0);setCalYear(y=>y+1);}else setCalMonth(m=>m+1); };
-
-          return (
-            <div>
-              <SectionHeader T={T}>📅 {monthName} {calYear}</SectionHeader>
-              {/* Month nav */}
-              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
-                <button onClick={prevMonth} style={{ background:"none", border:`1px solid ${T.cardBorder}`, color:T.text, padding:"6px 14px", borderRadius:4, cursor:"pointer", fontFamily:MF, fontSize:14, letterSpacing:1 }}>← PREV</button>
-                <div style={{ fontSize:11, color:T.textSub, fontFamily:MF, letterSpacing:2 }}>{fullThisMonth} FULL DAYS</div>
-                <button onClick={nextMonth} disabled={isCurrentMonth} style={{ background:"none", border:`1px solid ${T.cardBorder}`, color:T.text, padding:"6px 14px", borderRadius:4, cursor:"pointer", fontFamily:MF, fontSize:14, letterSpacing:1, opacity:isCurrentMonth?0.3:1 }}>NEXT →</button>
+        {/* CALENDAR */}
+        {screen==="calendar"&&(()=>{
+          const dim=new Date(calYear,calMonth+1,0).getDate();
+          const fdow=new Date(calYear,calMonth,1).getDay();
+          const mname=new Date(calYear,calMonth,1).toLocaleString("default",{month:"long"});
+          const mkey=`${calYear}-${String(calMonth+1).padStart(2,"0")}`;
+          const fullThis=allLogs.filter(l=>l.log_date.startsWith(mkey)&&l.movement&&l.god&&l.vanity&&l.business).length;
+          const isCurMon=calYear===now2.getFullYear()&&calMonth===now2.getMonth();
+          const prevM=()=>{if(calMonth===0){setCalMonth(11);setCalYear(y=>y-1);}else setCalMonth(m=>m-1);};
+          const nextM=()=>{if(calMonth===11){setCalMonth(0);setCalYear(y=>y+1);}else setCalMonth(m=>m+1);};
+          return(
+            <div style={{animation:"fadeUp 0.35s ease both"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                <button onClick={prevM} style={{background:"none",border:"none",color:D.textSec,cursor:"pointer",fontSize:24,padding:"4px 8px",lineHeight:1}}>‹</button>
+                <div style={{textAlign:"center"}}>
+                  <div style={{fontSize:20,fontWeight:700,color:D.textPrimary}}>{mname} {calYear}</div>
+                  <div style={{fontSize:13,color:D.textTert,marginTop:2}}>Full days: <span style={{color:D.success,fontWeight:600}}>{fullThis}</span></div>
+                </div>
+                <button onClick={nextM} disabled={isCurMon} style={{background:"none",border:"none",color:isCurMon?D.textTert:D.textSec,cursor:"pointer",fontSize:24,padding:"4px 8px",lineHeight:1,opacity:isCurMon?0.3:1}}>›</button>
               </div>
-              {/* Day headers */}
-              <div style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:4, marginBottom:4 }}>
-                {DAY_LABELS.map(d=>(
-                  <div key={d} style={{ textAlign:"center", fontSize:10, color:T.textSub, fontFamily:MF, letterSpacing:1, padding:"4px 0" }}>{d}</div>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:4,marginBottom:6}}>
+                {["S","M","T","W","T","F","S"].map((d,i)=>(
+                  <div key={i} style={{textAlign:"center",fontSize:11,color:D.textTert,fontWeight:600,padding:"4px 0"}}>{d}</div>
                 ))}
               </div>
-              {/* Grid */}
-              <div style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:4 }}>
-                {Array.from({length:firstDayOfWeek},(_,i)=><div key={`e${i}`} />)}
-                {Array.from({length:daysInMonth},(_,i)=>{
-                  const dayNum = i+1;
-                  const key = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(dayNum).padStart(2,'0')}`;
-                  const log = allLogs.find(l=>l.log_date===key)||{};
-                  const full = ["movement","god","vanity","business"].every(f=>log[f]);
-                  const isCurrent = key===todayStr();
-                  const future = key>todayStr();
-                  const isWeekend = [0,6].includes(new Date(calYear,calMonth,dayNum).getDay());
+              <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:4}}>
+                {Array.from({length:fdow},(_,i)=><div key={`e${i}`}/>)}
+                {Array.from({length:dim},(_,i)=>{
+                  const dn=i+1;
+                  const key=`${calYear}-${String(calMonth+1).padStart(2,"0")}-${String(dn).padStart(2,"0")}`;
+                  const log=allLogs.find(l=>l.log_date===key)||{};
+                  const done=CORE4.filter(c=>log[c.id]).length;
+                  const full=done===4;
+                  const isCur=key===todayStr();
+                  const future=key>todayStr();
                   return(
-                    <div key={dayNum} onClick={()=>{ if(!future){ setSelectedDate(key); setScreen("dashboard"); } }} style={{
-                      background:full?(darkMode?"linear-gradient(135deg,#1a3010,#253a10)":"linear-gradient(135deg,#e8f5e8,#d0ead0)"):future?T.futureCard:T.card,
-                      border:isCurrent?"2px solid #c9a84c":full?"1px solid #4a7a20":`1px solid ${T.cardBorder}`,
-                      borderRadius:6, padding:"8px 2px", textAlign:"center",
-                      cursor:future?"default":"pointer", opacity:future?0.35:1, transition:"background 0.3s",
-                    }}>
-                      <div style={{ fontSize:14, fontWeight:700, fontFamily:MF, lineHeight:1, marginBottom:4,
-                        color:isCurrent?"#c9a84c":full?"#4caf50":isWeekend?"#8a9ab5":T.text }}>{dayNum}</div>
-                      <div style={{ display:"flex", gap:2, justifyContent:"center" }}>
-                        {CORE4.map(c=>(
-                          <div key={c.id} style={{ width:4, height:4, borderRadius:"50%", background:log[c.id]?"#c9a84c":T.progressBg }} />
-                        ))}
-                      </div>
+                    <div key={dn} onClick={()=>{if(!future){setSelectedDate(key);setScreen("dashboard");}}} style={{aspectRatio:"1",background:full?D.successMuted:isCur?D.brandMuted:D.surface,border:isCur?`1px solid ${D.brand}`:full?`1px solid rgba(53,193,139,0.3)`:`1px solid ${D.divider}`,borderRadius:D.r10,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",cursor:future?"default":"pointer",opacity:future?0.3:1,transition:"all 0.15s"}}>
+                      <div style={{fontSize:14,fontWeight:600,color:isCur?D.brand:full?D.success:D.textPrimary,lineHeight:1}}>{dn}</div>
+                      {done>0&&done<4&&<div style={{display:"flex",gap:2,marginTop:3}}>{CORE4.map(c=><div key={c.id} style={{width:3,height:3,borderRadius:"50%",background:log[c.id]?D.brand:"rgba(255,255,255,0.12)"}}/>)}</div>}
+                      {full&&<div style={{fontSize:9,marginTop:2,color:D.success}}>✓</div>}
                     </div>
                   );
                 })}
               </div>
-              <div style={{ marginTop:16, display:"flex", gap:16, fontSize:11, color:T.textSub, flexWrap:"wrap" }}>
-                <span>🟡 dots = Core 4 items</span><span>🟢 green = full day</span><span>🟡 border = today</span>
-              </div>
+              <div style={{marginTop:12,fontSize:12,color:D.textTert,textAlign:"center"}}>Tap any past day to check in · Green = full Power Hour</div>
             </div>
           );
         })()}
 
-        {/* ── LEADERBOARD ── */}
+        {/* LEADERBOARD */}
         {screen==="leaderboard"&&(
-          <div>
-            <SectionHeader T={T}>🏆 Team Leaderboard</SectionHeader>
-            <div style={{ fontSize:12, color:T.textSub, marginBottom:16 }}>
-              {leaderboard.filter(e=>!e.is_private).length} warriors sharing • {leaderboard.filter(e=>e.is_private).length} in private mode
+          <div style={{animation:"fadeUp 0.35s ease both"}}>
+            <div style={{marginBottom:16}}>
+              <div style={{fontSize:22,fontWeight:700,color:D.textPrimary,fontFamily:FF,letterSpacing:1}}>Leaderboard</div>
+              <div style={{fontSize:13,color:D.textTert,marginTop:2}}>{leaderboard.length} warriors · {now2.toLocaleString("default",{month:"long"})}</div>
             </div>
-            {leaderboard.map((entry,i)=>(
-              <div key={entry.id} style={{
-                background:entry.id===user?.id?T.youBg:T.card,
-                border:entry.id===user?.id?`1px solid ${T.youBorder}`:`1px solid ${T.cardBorder}`,
-                borderLeft:`4px solid ${i===0?"#c9a84c":i===1?"#9e9e9e":i===2?"#a0522d":T.cardBorder}`,
-                borderRadius:6, padding:"14px 18px", marginBottom:10,
-                display:"flex", alignItems:"center", gap:14, transition:"background 0.3s",
-              }}>
-                <div style={{ width:36, height:36, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:700, fontSize:16, fontFamily:MF,
-                  background:i===0?"#c9a84c":i===1?"#9e9e9e":i===2?"#a0522d":T.rankBg,
-                  color:i<3?"#fff":T.rankText,
-                }}>{i+1}</div>
-                <div style={{ flex:1 }}>
-                  <div style={{ fontWeight:700, fontSize:16, color:entry.id===user?.id?T.sectionText:T.text, fontFamily:MF, letterSpacing:1, textTransform:"uppercase" }}>
-                    {entry.is_private?"🔒 Anonymous Warrior":entry.name}
-                    {entry.id===user?.id&&<span style={{ fontSize:11, color:"#1B6CA8", marginLeft:8, fontFamily:BF, textTransform:"none", fontWeight:"normal" }}>(you)</span>}
+            {leaderboard.map((entry,i)=>{
+              const isYou=entry.id===user?.id;
+              const initials=entry.name?.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase()||"?";
+              return(
+                <div key={entry.id} style={{background:i===0?D.brandMuted:D.surface,border:`1px solid ${i===0?"rgba(214,178,94,0.25)":isYou?"rgba(53,193,139,0.25)":D.divider}`,borderRadius:D.r16,padding:"14px 16px",marginBottom:10,display:"flex",alignItems:"center",gap:12,animation:`fadeUp 0.3s ease ${i*40}ms both`,boxShadow:i===0?"0 4px 20px rgba(214,178,94,0.1)":"none"}}>
+                  <div style={{width:30,height:30,borderRadius:"50%",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:i<3?14:12,fontWeight:700,fontFamily:FF,background:i===0?D.brand:i===1?"#9E9E9E":i===2?"#A0522D":D.surface2,color:i<3?"#000":D.textTert}}>
+                    {i===0?"👑":i+1}
                   </div>
-                  <div style={{ fontSize:12, color:T.textSub, marginTop:2 }}>
-                    {entry.is_private?"Stats hidden":`🔥 ${entry.streak} day streak • ${entry.fullDays} full days`}
+                  <div style={{width:38,height:38,borderRadius:"50%",flexShrink:0,background:D.surface2,border:`1px solid ${D.divider}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700,color:D.textSec}}>{initials}</div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:15,fontWeight:600,color:isYou?D.success:D.textPrimary,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                      {entry.name}{isYou&&<span style={{fontSize:11,color:D.textTert,marginLeft:6,fontWeight:400}}>you</span>}
+                    </div>
+                    <div style={{fontSize:12,color:D.textTert,marginTop:2}}>🔥 {entry.streak}d · {entry.fullDays} full days</div>
+                  </div>
+                  <div style={{textAlign:"right",flexShrink:0}}>
+                    <div style={{fontSize:22,fontWeight:700,color:D.brand,fontFamily:FF,lineHeight:1}}>{entry.score}</div>
+                    <div style={{fontSize:11,color:D.textTert}}>pts</div>
                   </div>
                 </div>
-                {!entry.is_private&&(
-                  <div style={{ textAlign:"right" }}>
-                    <div style={{ fontSize:26, fontWeight:700, color:"#c9a84c", fontFamily:MF }}>{entry.score}</div>
-                    <div style={{ fontSize:10, color:T.textMuted }}>pts</div>
-                  </div>
-                )}
-              </div>
-            ))}
-            <div style={{ marginTop:16, background:T.scoringBg, border:`1px solid ${T.cardBorder}`, borderRadius:6, padding:16, fontSize:12, color:T.textSub, transition:"background 0.3s" }}>
-              <div style={{ color:T.sectionText, marginBottom:6, fontWeight:700, fontSize:16, fontFamily:MF, letterSpacing:2, textTransform:"uppercase" }}>⭐ Scoring</div>
-              Core 4 item = 10 pts &nbsp;|&nbsp; Full Power Hour = +20 bonus &nbsp;|&nbsp; Custom goal = 5 pts
+              );
+            })}
+            <div style={{marginTop:12,background:D.surface,borderRadius:D.r12,padding:"12px 16px",border:`1px solid ${D.divider}`,fontSize:12,color:D.textTert}}>
+              Core 4 item = 10 pts · Full Power Hour = +20 · Custom goal = 5 pts
             </div>
           </div>
         )}
 
-        {/* ── ADMIN ── */}
-        {screen==="admin" && profile?.role==="manager" && (
-          <div>
-            <SectionHeader T={T}>⚔️ Edit Requests</SectionHeader>
-            {editRequests.length===0 && (
-              <div style={{ color:T.textMuted, textAlign:"center", padding:40, background:T.card, borderRadius:8, border:`1px solid ${T.cardBorder}` }}>
-                No pending requests — all warriors are up to date!
-              </div>
-            )}
-            {editRequests.map(req=>(
-              <div key={req.id} style={{ background:T.card, border:`1px solid ${T.cardBorder}`, borderLeft:`4px solid ${req.status==="pending"?"#c9a84c":req.status==="approved"?"#4caf50":"#ff6b6b"}`, borderRadius:8, padding:"16px 18px", marginBottom:12, transition:"background 0.3s" }}>
-                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", flexWrap:"wrap", gap:8, marginBottom:8 }}>
-                  <div>
-                    <div style={{ fontSize:16, fontWeight:700, color:T.text, fontFamily:MF, letterSpacing:1, textTransform:"uppercase" }}>
-                      {req.profiles?.name || "Unknown"}
-                    </div>
-                    <div style={{ fontSize:12, color:T.textSub, marginTop:2 }}>
-                      Requesting edit for: <span style={{ color:"#c9a84c", fontWeight:700 }}>{new Date(req.requested_date+"T12:00:00").toLocaleDateString('default',{weekday:'long',month:'long',day:'numeric',year:'numeric'})}</span>
-                    </div>
-                  </div>
-                  <div style={{ fontSize:11, fontFamily:MF, letterSpacing:1, padding:"4px 10px", borderRadius:20, fontWeight:700,
-                    background: req.status==="pending"?"#c9a84c22":req.status==="approved"?"#4caf5022":"#ff000022",
-                    color: req.status==="pending"?"#c9a84c":req.status==="approved"?"#4caf50":"#ff6b6b",
-                    border: `1px solid ${req.status==="pending"?"#c9a84c55":req.status==="approved"?"#4caf5055":"#ff000044"}`
-                  }}>
-                    {req.status.toUpperCase()}
-                  </div>
-                </div>
-                <div style={{ fontSize:13, color:T.textSub, background:T.progressBg, borderRadius:4, padding:"10px 12px", marginBottom:req.status==="pending"?12:0, lineHeight:1.6 }}>
-                  "{req.reason}"
-                </div>
-                {req.status==="pending" && (
-                  <div style={{ display:"flex", gap:10 }}>
-                    <button onClick={()=>reviewEditRequest(req.id,"approved")} style={{ flex:1, background:"linear-gradient(135deg,#2a7a2a,#4caf50)", color:"#fff", border:"none", padding:"10px", borderRadius:4, cursor:"pointer", fontFamily:MF, fontWeight:700, fontSize:15, letterSpacing:2, textTransform:"uppercase" }}>
-                      ✅ APPROVE
-                    </button>
-                    <button onClick={()=>reviewEditRequest(req.id,"denied")} style={{ flex:1, background:"linear-gradient(135deg,#7a2a2a,#c0392b)", color:"#fff", border:"none", padding:"10px", borderRadius:4, cursor:"pointer", fontFamily:MF, fontWeight:700, fontSize:15, letterSpacing:2, textTransform:"uppercase" }}>
-                      ❌ DENY
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* ── GOALS ── */}
+        {/* GOALS */}
         {screen==="goals"&&(
-          <GoalsManager userId={user?.id} goals={goals} setGoals={setGoals} goalCompletions={goalCompletions} T={T} darkMode={darkMode} />
+          <GoalsScreen goals={goals} setGoals={setGoals} goalCompletions={goalCompletions} userId={user?.id} onAddGoal={()=>setShowAddGoal(true)}/>
         )}
+
+        {/* SETTINGS */}
+        {screen==="settings"&&(
+          <div style={{animation:"fadeUp 0.35s ease both"}}>
+            <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:24}}>
+              <img src={WW_LOGO} alt="WW" style={{height:38,width:38,objectFit:"contain",borderRadius:8,background:D.surface2,padding:4}}/>
+              <span style={{color:D.textTert,fontSize:16}}>×</span>
+              <img src={B49_LOGO} alt="B49" style={{height:38,width:38,objectFit:"contain",borderRadius:8,background:D.surface2,padding:4}}/>
+              <div>
+                <div style={{fontSize:16,fontWeight:700,color:D.textPrimary,fontFamily:FF,letterSpacing:1}}>Warrior Way</div>
+                <div style={{fontSize:11,color:D.textTert}}>Power Hour Platform</div>
+              </div>
+            </div>
+
+            <SettingsGroup title="Appearance">
+              <SettingsToggle label="Dark Mode" sub="Switch between light and dark" value={darkMode} onChange={()=>setDarkMode(d=>!d)}/>
+            </SettingsGroup>
+
+            <SettingsGroup title="Account">
+              <div style={{padding:"10px 0",borderBottom:`1px solid ${D.divider}`}}>
+                <div style={{fontSize:15,fontWeight:600,color:D.textPrimary}}>{profile?.name}</div>
+                <div style={{fontSize:12,color:D.textTert,marginTop:2}}>{user?.email} · <span style={{color:D.brand,textTransform:"capitalize"}}>{profile?.role}</span></div>
+              </div>
+              <SettingsToggle label="Show on Leaderboard" sub="Share your progress with the team" value={!profile?.is_private} onChange={togglePrivate}/>
+            </SettingsGroup>
+
+            <SettingsGroup title="My Stats">
+              {[{label:"Total Points",value:score},{label:"Current Streak",value:`${streak} days`},{label:"Full Power Hours",value:fullDays},{label:"Days Logged",value:allLogs.length},{label:"Custom Goals",value:goals.length}].map(s=>(
+                <div key={s.label} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:`1px solid ${D.divider}`}}>
+                  <div style={{fontSize:14,color:D.textSec}}>{s.label}</div>
+                  <div style={{fontSize:16,fontWeight:700,color:D.brand,fontFamily:FF}}>{s.value}</div>
+                </div>
+              ))}
+            </SettingsGroup>
+
+            <SettingsGroup title="Scoring">
+              <div style={{fontSize:13,color:D.textTert,lineHeight:2}}>
+                <div>Core 4 item → <span style={{color:D.brand}}>10 pts</span></div>
+                <div>Full Power Hour bonus → <span style={{color:D.brand}}>+20 pts</span></div>
+                <div>Custom goal hit → <span style={{color:D.brand}}>5 pts</span></div>
+              </div>
+            </SettingsGroup>
+
+            <button onClick={handleLogout} style={{width:"100%",padding:15,marginTop:8,background:"none",border:`1px solid rgba(255,90,95,0.3)`,color:D.danger,borderRadius:D.r12,cursor:"pointer",fontSize:15,fontWeight:600}}>Sign Out</button>
+          </div>
+        )}
+
+        {/* ADMIN */}
+        {screen==="admin"&&profile?.role==="manager"&&(
+          <div style={{animation:"fadeUp 0.35s ease both"}}>
+            <div style={{fontSize:22,fontWeight:700,color:D.textPrimary,fontFamily:FF,letterSpacing:1,marginBottom:16}}>Edit Requests</div>
+            {editRequests.length===0&&<div style={{background:D.surface,borderRadius:D.r16,padding:40,textAlign:"center",color:D.textTert,border:`1px solid ${D.divider}`}}>All warriors are up to date ✓</div>}
+            {editRequests.map(req=>(
+              <div key={req.id} style={{background:D.surface,borderRadius:D.r16,padding:16,marginBottom:12,border:`1px solid ${req.status==="pending"?"rgba(214,178,94,0.3)":req.status==="approved"?"rgba(53,193,139,0.3)":"rgba(255,90,95,0.2)"}`}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
+                  <div>
+                    <div style={{fontSize:15,fontWeight:600,color:D.textPrimary}}>{req.profiles?.name||"Unknown"}</div>
+                    <div style={{fontSize:12,color:D.textTert,marginTop:2}}>{new Date(req.requested_date+"T12:00:00").toLocaleDateString("default",{weekday:"short",month:"short",day:"numeric"})}</div>
+                  </div>
+                  <span style={{fontSize:11,fontWeight:600,padding:"3px 10px",borderRadius:20,background:req.status==="pending"?D.brandMuted:req.status==="approved"?D.successMuted:"rgba(255,90,95,0.12)",color:req.status==="pending"?D.brand:req.status==="approved"?D.success:D.danger}}>{req.status}</span>
+                </div>
+                <div style={{fontSize:13,color:D.textSec,background:D.bg,borderRadius:D.r8,padding:"10px 12px",marginBottom:req.status==="pending"?12:0}}>"{req.reason}"</div>
+                {req.status==="pending"&&(
+                  <div style={{display:"flex",gap:8}}>
+                    <button onClick={()=>reviewEditRequest(req.id,"approved")} style={{flex:1,padding:10,background:D.successMuted,border:`1px solid rgba(53,193,139,0.3)`,color:D.success,borderRadius:D.r10,cursor:"pointer",fontSize:14,fontWeight:600}}>Approve</button>
+                    <button onClick={()=>reviewEditRequest(req.id,"denied")}   style={{flex:1,padding:10,background:"rgba(255,90,95,0.08)",border:`1px solid rgba(255,90,95,0.2)`,color:D.danger,borderRadius:D.r10,cursor:"pointer",fontSize:14,fontWeight:600}}>Deny</button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Bottom Tab Bar */}
+      <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:100,background:"rgba(7,10,15,0.96)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderTop:`1px solid ${D.divider}`,display:"flex",justifyContent:"space-around",alignItems:"center",padding:"8px 0 max(8px,env(safe-area-inset-bottom))"}}>
+        {tabs.map(tab=>{
+          const active=screen===tab.id;
+          return(
+            <button key={tab.id} onClick={()=>setScreen(tab.id)} style={{background:"none",border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:3,padding:"4px 10px",color:active?D.brand:D.textTert,transition:"color 0.2s"}}>
+              <span style={{fontSize:20,lineHeight:1}}>{tab.icon}</span>
+              <span style={{fontSize:10,fontWeight:600,letterSpacing:0.3}}>{tab.label}</span>
+              {active&&<div style={{width:4,height:4,borderRadius:"50%",background:D.brand}}/>}
+            </button>
+          );
+        })}
+      </div>
+
+      {showAddGoal&&<AddGoalSheet userId={user?.id} setGoals={setGoals} onClose={()=>setShowAddGoal(false)}/>}
+    </div>
+  );
+}
+
+function ProgressRing({pct,done}){
+  const r=90,circ=2*Math.PI*r,offset=circ*(1-pct/100);
+  return(
+    <div style={{position:"relative",width:200,height:200,margin:"0 auto"}}>
+      <svg width="200" height="200" style={{transform:"rotate(-90deg)"}}>
+        <circle cx="100" cy="100" r={r} fill="none" stroke={D.bg} strokeWidth="14"/>
+        <circle cx="100" cy="100" r={r} fill="none" stroke={pct===100?D.success:D.brand} strokeWidth="14" strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={offset} style={{transition:"stroke-dashoffset 0.6s cubic-bezier(0.4,0,0.2,1)",filter:pct===100?"drop-shadow(0 0 8px rgba(53,193,139,0.8))":"drop-shadow(0 0 6px rgba(214,178,94,0.6))"}}/>
+      </svg>
+      <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
+        <div style={{fontSize:44,fontWeight:700,color:pct===100?D.success:D.textPrimary,fontFamily:FF,lineHeight:1,animation:pct===100?"popIn 0.4s ease both":"none"}}>{done}/4</div>
+        <div style={{fontSize:12,color:D.textTert,marginTop:4,letterSpacing:0.5}}>{pct===100?"Complete ✓":"Core 4"}</div>
       </div>
     </div>
   );
 }
 
-// ─── Goals Manager ────────────────────────────────────────────────────────────
-function GoalsManager({ userId, goals, setGoals, goalCompletions, T, darkMode }) {
-  const [name, setName]     = useState("");
-  const [target, setTarget] = useState(20);
-  const [unit, setUnit]     = useState("times");
-  const [color, setColor]   = useState(GOAL_COLORS[0]);
-  const [saving, setSaving] = useState(false);
-
-  async function addGoal() {
-    if (!name.trim()) return;
-    setSaving(true);
-    const { data } = await supabase.from("goals").insert({ user_id:userId, name:name.trim(), target:Number(target), unit, color }).select().single();
-    if (data) setGoals(prev=>[...prev,data]);
-    setName(""); setTarget(20); setUnit("times"); setSaving(false);
-  }
-
-  async function removeGoal(id) {
-    await supabase.from("goals").delete().eq("id", id);
-    setGoals(prev=>prev.filter(g=>g.id!==id));
-  }
-
-  const iStyle = { background:T.inputBg, border:`1px solid ${T.inputBorder}`, borderRadius:4, padding:"10px 12px", color:T.inputText, fontSize:13, fontFamily:BF, outline:"none", width:"100%", boxSizing:"border-box" };
-
-  return (
-    <div>
-      <SectionHeader T={T}>🎯 Custom Goals</SectionHeader>
-      <div style={{ background:T.card, border:`1px solid ${T.cardBorder}`, borderTop:"3px solid #1B3A5C", borderRadius:6, padding:20, marginBottom:24, transition:"background 0.3s" }}>
-        <div style={{ fontSize:18, color:T.sectionText, marginBottom:14, fontWeight:700, fontFamily:MF, letterSpacing:2, textTransform:"uppercase" }}>Add a New Goal</div>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 80px 110px", gap:10, marginBottom:12 }}>
-          <input value={name} onChange={e=>setName(e.target.value)} placeholder="Goal name (e.g. Go to gym)" style={iStyle} />
-          <input type="number" value={target} onChange={e=>setTarget(e.target.value)} min={1} style={iStyle} />
-          <input value={unit} onChange={e=>setUnit(e.target.value)} placeholder="times / pages" style={iStyle} />
-        </div>
-        <div style={{ marginBottom:14 }}>
-          <div style={{ fontSize:11, color:T.textSub, marginBottom:8 }}>Color</div>
-          <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-            {GOAL_COLORS.map(c=>(
-              <div key={c} onClick={()=>setColor(c)} style={{ width:24, height:24, borderRadius:"50%", background:c, cursor:"pointer", border:color===c?"3px solid #fff":"3px solid transparent", boxSizing:"border-box" }} />
-            ))}
-          </div>
-        </div>
-        <button onClick={addGoal} disabled={saving||!name.trim()} style={{ background:"linear-gradient(135deg,#1B3A5C,#1B6CA8)", color:"#fff", border:"none", padding:"10px 28px", borderRadius:4, cursor:"pointer", fontFamily:MF, fontWeight:700, fontSize:16, letterSpacing:2, textTransform:"uppercase", opacity:saving||!name.trim()?0.5:1 }}>
-          {saving?"SAVING…":"ADD GOAL"}
-        </button>
+function TaskRow({icon,label,desc,checked,onClick,accent,delay=0,progress}){
+  return(
+    <div className="task-row" onClick={onClick} style={{background:checked?"rgba(53,193,139,0.07)":D.surface,border:`1px solid ${checked?"rgba(53,193,139,0.2)":D.divider}`,borderRadius:D.r12,padding:"13px 15px",marginBottom:9,display:"flex",alignItems:"center",gap:13,cursor:"pointer",transition:"all 0.18s",animation:`fadeUp 0.3s ease ${delay}ms both`}}>
+      <div style={{width:42,height:42,borderRadius:D.r10,flexShrink:0,background:checked?"rgba(53,193,139,0.12)":"rgba(255,255,255,0.04)",border:`1px solid ${checked?"rgba(53,193,139,0.25)":D.divider}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:19,transition:"all 0.18s"}}>
+        {checked?<span style={{color:D.success,fontSize:17,fontWeight:700}}>✓</span>:icon}
       </div>
-      {goals.length===0&&<div style={{ color:T.textMuted, textAlign:"center", padding:40, background:T.card, borderRadius:8, border:`1px solid ${T.cardBorder}` }}>No custom goals yet — add your first one above!</div>}
+      <div style={{flex:1,minWidth:0}}>
+        <div style={{fontSize:15,fontWeight:600,color:checked?D.success:D.textPrimary,transition:"color 0.18s"}}>{label}</div>
+        <div style={{fontSize:12,color:D.textTert,marginTop:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{desc}</div>
+        {progress!==undefined&&<div style={{marginTop:6,background:"rgba(255,255,255,0.05)",borderRadius:2,height:3,overflow:"hidden"}}><div style={{height:"100%",width:`${progress}%`,background:accent||D.brand,borderRadius:2,transition:"width 0.5s"}}/></div>}
+      </div>
+      {checked&&<span style={{fontSize:13,flexShrink:0}}>🔥</span>}
+    </div>
+  );
+}
+
+function GoalsScreen({goals,setGoals,goalCompletions,userId,onAddGoal}){
+  async function removeGoal(id){await supabase.from("goals").delete().eq("id",id);setGoals(prev=>prev.filter(g=>g.id!==id));}
+  return(
+    <div style={{animation:"fadeUp 0.35s ease both"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+        <div style={{fontSize:22,fontWeight:700,color:D.textPrimary,fontFamily:FF,letterSpacing:1}}>Goals</div>
+        <button onClick={onAddGoal} style={{background:D.brandMuted,border:`1px solid rgba(214,178,94,0.3)`,color:D.brand,borderRadius:D.r12,padding:"8px 16px",cursor:"pointer",fontSize:14,fontWeight:600}}>+ Add</button>
+      </div>
+      <div style={{background:D.surface,borderRadius:D.r16,padding:16,marginBottom:16,border:`1px solid ${D.divider}`}}>
+        <div style={{fontSize:11,color:D.textTert,fontWeight:600,letterSpacing:1,textTransform:"uppercase",marginBottom:12}}>Core 4 — Daily</div>
+        {CORE4.map((item,i)=>(
+          <div key={item.id} style={{display:"flex",alignItems:"center",gap:12,padding:"9px 0",borderBottom:i<3?`1px solid ${D.divider}`:"none"}}>
+            <span style={{fontSize:18}}>{item.icon}</span>
+            <div style={{flex:1}}>
+              <div style={{fontSize:14,fontWeight:600,color:D.textPrimary}}>{item.label}</div>
+              <div style={{fontSize:11,color:D.textTert}}>{item.desc}</div>
+            </div>
+            <div style={{fontSize:11,color:D.brand,fontWeight:600}}>Daily</div>
+          </div>
+        ))}
+      </div>
+      <div style={{fontSize:11,color:D.textTert,fontWeight:600,letterSpacing:1,textTransform:"uppercase",marginBottom:10}}>Custom Goals</div>
+      {goals.length===0&&<div style={{background:D.surface,borderRadius:D.r16,padding:40,textAlign:"center",color:D.textTert,border:`1px solid ${D.divider}`}}>No custom goals yet.<br/><span style={{color:D.brand,cursor:"pointer"}} onClick={onAddGoal}>Add your first goal →</span></div>}
       {goals.map(goal=>{
-        const doneCount=goalCompletions.filter(gc=>gc.goal_id===goal.id).length;
-        const pct=Math.min(100,Math.round((doneCount/goal.target)*100));
+        const dc=goalCompletions.filter(gc=>gc.goal_id===goal.id).length;
+        const pct=Math.min(100,Math.round((dc/goal.target)*100));
         return(
-          <div key={goal.id} style={{ background:T.card, border:`1px solid ${T.cardBorder}`, borderLeft:`4px solid ${goal.color}`, borderRadius:6, padding:"16px 18px", marginBottom:12, transition:"background 0.3s" }}>
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
-              <div>
-                <div style={{ fontSize:18, fontWeight:700, color:T.text, marginBottom:4, fontFamily:MF, letterSpacing:1, textTransform:"uppercase" }}>{goal.name}</div>
-                <div style={{ fontSize:12, color:T.textSub }}>Target: {goal.target} {goal.unit}</div>
-              </div>
-              <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-                <div style={{ textAlign:"right" }}>
-                  <div style={{ fontSize:22, fontWeight:700, color:goal.color, fontFamily:MF }}>{doneCount}</div>
-                  <div style={{ fontSize:10, color:T.textMuted }}>of {goal.target}</div>
+          <div key={goal.id} style={{background:D.surface,borderRadius:D.r16,padding:16,marginBottom:10,border:`1px solid ${D.divider}`}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
+              <div style={{display:"flex",alignItems:"center",gap:10}}>
+                <div style={{width:10,height:10,borderRadius:"50%",background:goal.color,flexShrink:0}}/>
+                <div>
+                  <div style={{fontSize:15,fontWeight:600,color:D.textPrimary}}>{goal.name}</div>
+                  <div style={{fontSize:12,color:D.textTert,marginTop:1}}>Target: {goal.target} {goal.unit}</div>
                 </div>
-                <button onClick={()=>removeGoal(goal.id)} style={{ background:"none", border:"none", color:T.textMuted, cursor:"pointer", fontSize:18 }}>✕</button>
+              </div>
+              <div style={{display:"flex",alignItems:"center",gap:10}}>
+                <div style={{textAlign:"right"}}><div style={{fontSize:22,fontWeight:700,color:goal.color,fontFamily:FF,lineHeight:1}}>{dc}</div><div style={{fontSize:10,color:D.textTert}}>of {goal.target}</div></div>
+                <button onClick={()=>removeGoal(goal.id)} style={{background:"none",border:"none",color:D.textTert,cursor:"pointer",fontSize:15,padding:4}}>✕</button>
               </div>
             </div>
-            <div style={{ marginTop:10 }}>
-              <div style={{ display:"flex", justifyContent:"space-between", fontSize:11, color:T.textSub, marginBottom:4 }}>
-                <span>Progress</span><span style={{ color:goal.color }}>{pct}%</span>
-              </div>
-              <div style={{ background:T.progressBg, borderRadius:4, height:8, overflow:"hidden" }}>
-                <div style={{ height:"100%", width:`${pct}%`, background:goal.color, borderRadius:4, transition:"width 0.5s" }} />
-              </div>
-            </div>
+            <div style={{background:D.bg,borderRadius:4,height:4,overflow:"hidden"}}><div style={{height:"100%",width:`${pct}%`,background:goal.color,borderRadius:4,transition:"width 0.5s"}}/></div>
+            <div style={{display:"flex",justifyContent:"space-between",fontSize:11,color:D.textTert,marginTop:6}}><span>Progress</span><span style={{color:goal.color}}>{pct}%</span></div>
           </div>
         );
       })}
@@ -692,258 +581,189 @@ function GoalsManager({ userId, goals, setGoals, goalCompletions, T, darkMode })
   );
 }
 
-// ─── Auth Screen ──────────────────────────────────────────────────────────────
-function AuthScreen({ mode, setMode, email, setEmail, password, setPassword, name, setName, onLogin, onSignup, loading, error }) {
-  const isSignup = mode==="signup";
-  const aInput = { background:"#ffffff15", border:"1px solid #c9a84c33", borderRadius:4, padding:"12px 16px", color:"#fff", fontSize:14, fontFamily:BF, outline:"none", width:"100%", boxSizing:"border-box" };
-  return (
-    <div style={{ minHeight:"100vh", background:"linear-gradient(135deg,#0d1b2a,#1B3A5C)", display:"flex", alignItems:"center", justifyContent:"center", fontFamily:BF }}>
-      <div style={{ textAlign:"center", maxWidth:400, padding:40, width:"100%" }}>
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:16, marginBottom:24 }}>
-          <LogoBox src={WW_LOGO} alt="Warrior Week" size={68} />
-          <div style={{ fontSize:32, color:"#c9a84c", fontWeight:700, fontFamily:MF }}>×</div>
-          <LogoBox src={B49_LOGO} alt="Branch 49" size={68} />
+function AddGoalSheet({userId,setGoals,onClose}){
+  const [name,setName]=useState("");
+  const [target,setTarget]=useState(20);
+  const [unit,setUnit]=useState("times");
+  const [color,setColor]=useState(GOAL_COLORS[0]);
+  const [saving,setSaving]=useState(false);
+  async function save(){
+    if(!name.trim())return;
+    setSaving(true);
+    const {data}=await supabase.from("goals").insert({user_id:userId,name:name.trim(),target:Number(target),unit,color}).select().single();
+    if(data)setGoals(prev=>[...prev,data]);
+    onClose();
+  }
+  return(
+    <div style={{position:"fixed",inset:0,zIndex:200,display:"flex",flexDirection:"column",justifyContent:"flex-end"}}>
+      <div onClick={onClose} style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.65)",backdropFilter:"blur(4px)"}}/>
+      <div style={{position:"relative",background:D.surface2,borderRadius:"20px 20px 0 0",padding:"8px 20px 48px",animation:"fadeUp 0.28s ease both",border:`1px solid ${D.divider}`}}>
+        <div style={{width:36,height:4,background:D.divider,borderRadius:2,margin:"12px auto 22px"}}/>
+        <div style={{fontSize:18,fontWeight:700,color:D.textPrimary,marginBottom:20}}>New Goal</div>
+        <label style={{fontSize:11,color:D.textTert,fontWeight:600,letterSpacing:0.5,display:"block",marginBottom:6}}>GOAL NAME</label>
+        <input value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Go to gym" style={{width:"100%",background:D.bg,border:`1px solid ${D.divider}`,borderRadius:D.r10,padding:"12px 14px",color:D.textPrimary,fontSize:15,outline:"none",marginBottom:16}}/>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:16}}>
+          <div>
+            <label style={{fontSize:11,color:D.textTert,fontWeight:600,letterSpacing:0.5,display:"block",marginBottom:6}}>TARGET</label>
+            <input type="number" value={target} onChange={e=>setTarget(e.target.value)} min={1} style={{width:"100%",background:D.bg,border:`1px solid ${D.divider}`,borderRadius:D.r10,padding:"12px 14px",color:D.textPrimary,fontSize:15,outline:"none"}}/>
+          </div>
+          <div>
+            <label style={{fontSize:11,color:D.textTert,fontWeight:600,letterSpacing:0.5,display:"block",marginBottom:6}}>UNIT</label>
+            <input value={unit} onChange={e=>setUnit(e.target.value)} placeholder="times" style={{width:"100%",background:D.bg,border:`1px solid ${D.divider}`,borderRadius:D.r10,padding:"12px 14px",color:D.textPrimary,fontSize:15,outline:"none"}}/>
+          </div>
         </div>
-        <div style={{ fontSize:38, fontFamily:MF, fontWeight:700, letterSpacing:4, color:"#fff", textTransform:"uppercase", lineHeight:1, marginBottom:6, textShadow:"0 3px 12px rgba(0,0,0,0.6)" }}>POWER HOUR</div>
-        <div style={{ fontSize:14, color:"#c9a84c", letterSpacing:4, textTransform:"uppercase", fontFamily:MF, fontWeight:700, marginBottom:4 }}>#WARRIORSWAY</div>
-        <p style={{ color:"#8da0b5", marginBottom:28, fontSize:12, lineHeight:2, letterSpacing:2, textTransform:"uppercase" }}>REAL • RAW • RELEVANT • RESULTS</p>
-        {isSignup&&<input value={name} onChange={e=>setName(e.target.value)} placeholder="Your full name" style={{ ...aInput, marginBottom:10 }} />}
-        <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="Work email" type="email" style={{ ...aInput, marginBottom:10 }} />
-        <input value={password} onChange={e=>setPassword(e.target.value)} placeholder="Password" type="password" onKeyDown={e=>e.key==="Enter"&&(isSignup?onSignup():onLogin())} style={{ ...aInput, marginBottom:16 }} />
-        {error&&<div style={{ color:error.startsWith("✅")?"#4caf50":"#ff6b6b", fontSize:12, marginBottom:12, background:error.startsWith("✅")?"#4caf5015":"#ff000015", padding:"8px 12px", borderRadius:4 }}>{error}</div>}
-        <button onClick={isSignup?onSignup:onLogin} disabled={loading} style={{ width:"100%", background:"linear-gradient(135deg,#c9a84c,#e8c96c)", color:"#0d1b2a", border:"none", padding:14, borderRadius:4, fontSize:20, fontWeight:700, cursor:"pointer", fontFamily:MF, letterSpacing:3, textTransform:"uppercase", opacity:loading?0.5:1, marginBottom:14 }}>
-          {loading?"…":isSignup?"JOIN THE ARENA":"ENTER THE ARENA"}
+        <label style={{fontSize:11,color:D.textTert,fontWeight:600,letterSpacing:0.5,display:"block",marginBottom:10}}>COLOR</label>
+        <div style={{display:"flex",gap:10,marginBottom:24,flexWrap:"wrap"}}>
+          {GOAL_COLORS.map(c=>(
+            <div key={c} onClick={()=>setColor(c)} style={{width:30,height:30,borderRadius:"50%",background:c,cursor:"pointer",border:color===c?"3px solid #fff":"3px solid transparent",boxShadow:color===c?`0 0 0 2px ${c}`:"none",transition:"all 0.15s"}}/>
+          ))}
+        </div>
+        <button onClick={save} disabled={saving||!name.trim()} style={{width:"100%",padding:15,background:D.brand,border:"none",borderRadius:D.r12,cursor:"pointer",color:"#000",fontSize:16,fontWeight:700,opacity:saving||!name.trim()?0.5:1}}>
+          {saving?"Saving…":"Save Goal"}
         </button>
-        <div style={{ fontSize:13, color:"#5a7a9a", cursor:"pointer" }} onClick={()=>setMode(isSignup?"login":"signup")}>
-          {isSignup?"Already have an account? ":"New warrior? "}
-          <span style={{ color:"#c9a84c", textDecoration:"underline" }}>{isSignup?"Sign in":"Create account"}</span>
-        </div>
-        <div style={{ marginTop:10, fontSize:11, color:"#3a5a7a" }}>Use your work email to join the team leaderboard</div>
       </div>
     </div>
   );
 }
 
-// ─── Small components ─────────────────────────────────────────────────────────
-function Loader() {
-  const [dots, setDots] = useState(0);
-  const [phase, setPhase] = useState(0);
-  const phases = ["INITIALIZING", "LOADING WARRIORS", "ENTERING THE ARENA"];
+function EditRequestCard({selectedDate,editRequests,requestReason,setRequestReason,requestMsg,onSubmit}){
+  const pending=editRequests.some(r=>r.requested_date===selectedDate&&r.status==="pending");
+  const denied=editRequests.some(r=>r.requested_date===selectedDate&&r.status==="denied");
+  return(
+    <div style={{background:D.surface,borderRadius:D.r16,padding:20,marginBottom:12,border:`1px solid rgba(214,178,94,0.18)`}}>
+      <div style={{fontSize:15,fontWeight:700,color:D.textPrimary,marginBottom:6}}>🔒 Edit Request Required</div>
+      <div style={{fontSize:13,color:D.textTert,marginBottom:16,lineHeight:1.6}}>Past days require manager approval. Tell them why you missed logging.</div>
+      {pending?<div style={{background:D.brandMuted,borderRadius:D.r10,padding:"10px 14px",fontSize:13,color:D.brand}}>⏳ Request pending — waiting for approval</div>
+      :denied?<div style={{background:"rgba(255,90,95,0.08)",borderRadius:D.r10,padding:"10px 14px",fontSize:13,color:D.danger}}>❌ Request denied — contact your manager</div>
+      :(
+        <>
+          <textarea value={requestReason} onChange={e=>setRequestReason(e.target.value)} placeholder="Why do you need to edit this day?" rows={3} style={{width:"100%",background:D.bg,border:`1px solid ${D.divider}`,borderRadius:D.r10,padding:"12px 14px",color:D.textPrimary,fontSize:13,outline:"none",resize:"vertical",marginBottom:10}}/>
+          {requestMsg&&<div style={{fontSize:12,color:requestMsg.startsWith("✅")?D.success:D.danger,marginBottom:10}}>{requestMsg}</div>}
+          <button onClick={onSubmit} disabled={!requestReason.trim()} style={{padding:"11px 22px",background:D.brandMuted,border:`1px solid rgba(214,178,94,0.3)`,color:D.brand,borderRadius:D.r10,cursor:"pointer",fontSize:14,fontWeight:600,opacity:!requestReason.trim()?0.5:1}}>Send Request</button>
+        </>
+      )}
+    </div>
+  );
+}
 
-  useEffect(() => {
-    const dotTimer = setInterval(() => setDots(d => (d + 1) % 4), 400);
-    const phaseTimer = setInterval(() => setPhase(p => Math.min(p + 1, phases.length - 1)), 900);
-    return () => { clearInterval(dotTimer); clearInterval(phaseTimer); };
-  }, []);
+function AuthScreen({mode,setMode,email,setEmail,password,setPassword,name,setName,onLogin,onSignup,loading,error}){
+  const isS=mode==="signup";
+  const inp={width:"100%",background:D.surface,border:`1px solid ${D.divider}`,borderRadius:D.r12,padding:"14px 16px",color:D.textPrimary,fontSize:15,outline:"none"};
+  return(
+    <div style={{minHeight:"100vh",background:D.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24,fontFamily:FB}}>
+      <GS/>
+      <div style={{width:"100%",maxWidth:380,animation:"fadeUp 0.5s ease both"}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:16,marginBottom:32}}>
+          <img src={WW_LOGO} alt="WW" style={{height:46,width:46,objectFit:"contain",borderRadius:10,background:D.surface,padding:6}}/>
+          <span style={{color:D.textTert,fontSize:18}}>×</span>
+          <img src={B49_LOGO} alt="B49" style={{height:46,width:46,objectFit:"contain",borderRadius:10,background:D.surface,padding:6}}/>
+        </div>
+        <div style={{textAlign:"center",marginBottom:36}}>
+          <div style={{fontSize:34,fontWeight:700,color:D.textPrimary,fontFamily:FF,letterSpacing:3,lineHeight:1}}>POWER HOUR</div>
+          <div style={{fontSize:12,color:D.brand,letterSpacing:4,marginTop:8,fontWeight:600}}>#WARRIORSWAY</div>
+          <div style={{fontSize:12,color:D.textTert,marginTop:6,letterSpacing:1}}>Real · Raw · Relevant · Results</div>
+        </div>
+        {isS&&<input value={name} onChange={e=>setName(e.target.value)} placeholder="Full name" style={{...inp,marginBottom:10}}/>}
+        <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="Work email" type="email" style={{...inp,marginBottom:10}}/>
+        <input value={password} onChange={e=>setPassword(e.target.value)} placeholder="Password" type="password" onKeyDown={e=>e.key==="Enter"&&(isS?onSignup():onLogin())} style={{...inp,marginBottom:16}}/>
+        {error&&<div style={{fontSize:13,color:error.startsWith("✅")?D.success:D.danger,background:error.startsWith("✅")?D.successMuted:"rgba(255,90,95,0.1)",borderRadius:D.r10,padding:"10px 14px",marginBottom:14}}>{error}</div>}
+        <button onClick={isS?onSignup:onLogin} disabled={loading} style={{width:"100%",padding:15,background:D.brand,border:"none",borderRadius:D.r12,cursor:"pointer",color:"#000",fontSize:16,fontWeight:700,opacity:loading?0.5:1,marginBottom:14}}>
+          {loading?"…":isS?"Join the Arena":"Enter the Arena"}
+        </button>
+        <div style={{textAlign:"center",fontSize:14,color:D.textTert}}>
+          {isS?"Already have an account? ":"New warrior? "}
+          <span style={{color:D.brand,cursor:"pointer",fontWeight:600}} onClick={()=>setMode(isS?"login":"signup")}>{isS?"Sign in":"Create account"}</span>
+        </div>
+        <div style={{textAlign:"center",fontSize:12,color:D.textTert,marginTop:8}}>Use your work email to join the team</div>
+      </div>
+    </div>
+  );
+}
 
-  return (
-    <div style={{
-      minHeight:"100vh", background:"#0d1b2a",
-      display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
-      fontFamily:MF, overflow:"hidden", position:"relative",
-    }}>
-
-      <style>{`
-        @keyframes erupt {
-          0%   { transform: translateY(60px); opacity: 0; }
-          60%  { transform: translateY(-12px); opacity: 1; }
-          80%  { transform: translateY(6px); }
-          100% { transform: translateY(0px); opacity: 1; }
-        }
-        @keyframes rootGrow {
-          0%   { opacity: 0; transform: scaleY(0); transform-origin: top center; }
-          100% { opacity: 1; transform: scaleY(1); transform-origin: top center; }
-        }
-        @keyframes groundPulse {
-          0%,100% { opacity: 0.5; transform: scaleX(1); }
-          50%     { opacity: 1;   transform: scaleX(1.08); }
-        }
-        @keyframes glowPulse {
-          0%,100% { filter: drop-shadow(0 0 8px #c9a84c66); }
-          50%     { filter: drop-shadow(0 0 22px #c9a84ccc); }
-        }
-        @keyframes textRise {
-          0%   { opacity:0; transform:translateY(16px); }
-          100% { opacity:1; transform:translateY(0); }
-        }
-        @keyframes barFill {
-          from { width: 0%; }
-        }
-        @keyframes dirtFly {
-          0%   { opacity:0; transform: translate(0,0) scale(0); }
-          40%  { opacity:1; }
-          100% { opacity:0; transform: translate(var(--dx), var(--dy)) scale(1.5); }
-        }
-      `}</style>
-
-      {/* Ground + eruption scene */}
-      <div style={{ position:"relative", width:240, height:280, marginBottom:24 }}>
-
-        {/* Dirt particles flying out */}
-        {[
-          {dx:"-40px", dy:"-30px", x:100, y:160},
-          {dx:"50px",  dy:"-40px", x:120, y:155},
-          {dx:"-60px", dy:"-20px", x:90,  y:170},
-          {dx:"65px",  dy:"-15px", x:135, y:165},
-          {dx:"-20px", dy:"-55px", x:108, y:150},
-          {dx:"30px",  dy:"-50px", x:115, y:148},
-        ].map((p,i)=>(
-          <div key={i} style={{
-            position:"absolute", left:p.x, top:p.y,
-            width:6, height:6, borderRadius:"50%",
-            background:"#5a3a1a",
-            "--dx":p.dx, "--dy":p.dy,
-            animation:`dirtFly 0.8s ease-out ${0.2+i*0.06}s both`,
-          }} />
+function LoadingScreen(){
+  const [dots,setDots]=useState(0);
+  const [phase,setPhase]=useState(0);
+  const phases=["Initializing","Loading warriors","Entering the arena"];
+  useEffect(()=>{
+    const d=setInterval(()=>setDots(x=>(x+1)%4),400);
+    const p=setInterval(()=>setPhase(x=>Math.min(x+1,phases.length-1)),900);
+    return()=>{clearInterval(d);clearInterval(p);};
+  },[]);
+  return(
+    <div style={{minHeight:"100vh",background:D.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",fontFamily:FB,overflow:"hidden"}}>
+      <GS/>
+      <div style={{position:"relative",width:240,height:280,marginBottom:32}}>
+        {[{dx:"-42px",dy:"-32px",x:100,y:160},{dx:"52px",dy:"-42px",x:120,y:155},{dx:"-62px",dy:"-22px",x:90,y:170},{dx:"66px",dy:"-16px",x:135,y:165},{dx:"-22px",dy:"-56px",x:108,y:150},{dx:"32px",dy:"-52px",x:115,y:148}].map((p,i)=>(
+          <div key={i} style={{position:"absolute",left:p.x,top:p.y,width:6,height:6,borderRadius:"50%",background:"#2a1a08","--dx":p.dx,"--dy":p.dy,animation:`dirtFly 0.8s ease-out ${0.2+i*0.06}s both`}}/>
         ))}
-
-        {/* Ground crack / dirt mound */}
-        <svg viewBox="0 0 240 60" style={{
-          position:"absolute", bottom:0, left:0, width:"100%",
-          animation:"groundPulse 2s ease-in-out infinite",
-        }}>
-          {/* Ground base */}
-          <ellipse cx="120" cy="45" rx="100" ry="18" fill="#1a0e06" />
-          <ellipse cx="120" cy="42" rx="85"  ry="12" fill="#2a1a0a" />
-          {/* Crack lines */}
-          <line x1="120" y1="28" x2="90"  y2="38" stroke="#3a2010" strokeWidth="2" opacity="0.8"/>
-          <line x1="120" y1="28" x2="150" y2="36" stroke="#3a2010" strokeWidth="2" opacity="0.8"/>
-          <line x1="105" y1="33" x2="85"  y2="44" stroke="#3a2010" strokeWidth="1.5" opacity="0.6"/>
-          <line x1="135" y1="31" x2="158" y2="42" stroke="#3a2010" strokeWidth="1.5" opacity="0.6"/>
-          {/* Gold glow under break point */}
-          <ellipse cx="120" cy="30" rx="18" ry="6" fill="#c9a84c" opacity="0.15"/>
+        <svg viewBox="0 0 240 60" style={{position:"absolute",bottom:0,left:0,width:"100%",opacity:0.9}}>
+          <ellipse cx="120" cy="45" rx="100" ry="18" fill="#050302"/>
+          <ellipse cx="120" cy="40" rx="80"  ry="10" fill="#0a0703"/>
+          <line x1="120" y1="26" x2="88"  y2="38" stroke="#150e04" strokeWidth="2"/>
+          <line x1="120" y1="26" x2="152" y2="36" stroke="#150e04" strokeWidth="2"/>
+          <ellipse cx="120" cy="28" rx="16" ry="5" fill={D.brand} opacity="0.25"/>
         </svg>
-
-        {/* Roots growing down from fist */}
-        <svg viewBox="0 0 120 100" style={{
-          position:"absolute", bottom:18, left:"50%", transform:"translateX(-50%)",
-          width:120, height:100,
-          animation:"rootGrow 0.6s ease-out 0.4s both",
-        }}>
-          {/* Main roots */}
-          <path d="M60 0 Q45 30 25 55 Q15 70 10 90" stroke="#c9a84c" strokeWidth="3" fill="none" strokeLinecap="round" opacity="0.9"/>
-          <path d="M60 0 Q75 28 95 52 Q105 68 110 88" stroke="#c9a84c" strokeWidth="3" fill="none" strokeLinecap="round" opacity="0.9"/>
-          <path d="M60 0 Q58 35 55 70 Q53 82 50 95" stroke="#c9a84c" strokeWidth="2.5" fill="none" strokeLinecap="round" opacity="0.85"/>
-          {/* Branch roots */}
-          <path d="M40 35 Q28 45 18 55" stroke="#c9a84c" strokeWidth="1.8" fill="none" strokeLinecap="round" opacity="0.7"/>
-          <path d="M80 32 Q92 42 100 54" stroke="#c9a84c" strokeWidth="1.8" fill="none" strokeLinecap="round" opacity="0.7"/>
-          <path d="M35 55 Q22 62 14 72" stroke="#c9a84c" strokeWidth="1.4" fill="none" strokeLinecap="round" opacity="0.6"/>
-          <path d="M85 50 Q98 58 106 70" stroke="#c9a84c" strokeWidth="1.4" fill="none" strokeLinecap="round" opacity="0.6"/>
-          <path d="M55 65 Q46 75 40 88" stroke="#c9a84c" strokeWidth="1.2" fill="none" strokeLinecap="round" opacity="0.55"/>
-          <path d="M57 68 Q66 78 70 90" stroke="#c9a84c" strokeWidth="1.2" fill="none" strokeLinecap="round" opacity="0.55"/>
+        <svg viewBox="0 0 120 100" style={{position:"absolute",bottom:18,left:"50%",transform:"translateX(-50%)",width:120,height:100,animation:"rootGrow 0.6s ease-out 0.4s both"}}>
+          <path d="M60 0 Q45 30 25 55 Q15 70 10 90" stroke={D.brand} strokeWidth="2.5" fill="none" strokeLinecap="round" opacity="0.85"/>
+          <path d="M60 0 Q75 28 95 52 Q105 68 110 88" stroke={D.brand} strokeWidth="2.5" fill="none" strokeLinecap="round" opacity="0.85"/>
+          <path d="M60 0 Q58 35 55 70 Q53 82 50 95" stroke={D.brand} strokeWidth="2" fill="none" strokeLinecap="round" opacity="0.7"/>
+          <path d="M40 35 Q28 45 18 55" stroke={D.brand} strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.6"/>
+          <path d="M80 32 Q92 42 100 54" stroke={D.brand} strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.6"/>
+          <path d="M35 55 Q22 62 14 72" stroke={D.brand} strokeWidth="1.2" fill="none" strokeLinecap="round" opacity="0.5"/>
+          <path d="M85 50 Q98 58 106 70" stroke={D.brand} strokeWidth="1.2" fill="none" strokeLinecap="round" opacity="0.5"/>
         </svg>
-
-        {/* Fist + stick erupting upward */}
-        <div style={{
-          position:"absolute", top:0, left:"50%", transform:"translateX(-50%)",
-          animation:"erupt 0.9s cubic-bezier(0.22,1,0.36,1) 0.1s both",
-        }}>
-          <svg viewBox="0 0 160 160" width="160" height="160"
-            style={{ animation:"glowPulse 2s ease-in-out 1s infinite", filter:"drop-shadow(0 0 10px #c9a84c88)" }}>
-
-            {/* Stick / branch horizontal */}
+        <div style={{position:"absolute",top:0,left:"50%",transform:"translateX(-50%)",animation:"erupt 0.9s cubic-bezier(0.22,1,0.36,1) 0.1s both"}}>
+          <svg viewBox="0 0 160 160" width="160" height="160" style={{animation:"glowPulse 2s ease-in-out 1s infinite"}}>
             <rect x="8"  y="62" width="52" height="14" rx="7" fill="#f0e8d0"/>
             <rect x="100" y="62" width="52" height="14" rx="7" fill="#f0e8d0"/>
-            {/* Stick end details */}
             <circle cx="12"  cy="69" r="7" fill="#e0d0b0"/>
             <circle cx="148" cy="69" r="7" fill="#e0d0b0"/>
-
-            {/* Fist body */}
             <rect x="52" y="54" width="56" height="52" rx="10" fill="#f5e6c8"/>
-            {/* Knuckle bumps */}
             <rect x="55" y="50" width="12" height="16" rx="6" fill="#f0ddb8"/>
             <rect x="70" y="47" width="13" height="18" rx="6" fill="#f0ddb8"/>
             <rect x="86" y="48" width="12" height="17" rx="6" fill="#f0ddb8"/>
             <rect x="100" y="51" width="10" height="15" rx="5" fill="#f0ddb8"/>
-            {/* Thumb */}
             <ellipse cx="54" cy="74" rx="8" ry="12" fill="#f0ddb8"/>
-            {/* Finger lines */}
-            <line x1="67" y1="56" x2="67" y2="104" stroke="#d4c0a0" strokeWidth="1.5" opacity="0.5"/>
-            <line x1="82" y1="54" x2="82" y2="104" stroke="#d4c0a0" strokeWidth="1.5" opacity="0.5"/>
-            <line x1="97" y1="55" x2="97" y2="104" stroke="#d4c0a0" strokeWidth="1.5" opacity="0.5"/>
-            {/* Wrist */}
             <rect x="60" y="100" width="40" height="20" rx="4" fill="#e8d5b0"/>
-
-            {/* 49 on fist */}
-            <text x="80" y="86" textAnchor="middle" fill="#1B3A5C"
-              style={{fontSize:22, fontWeight:900, fontFamily:"'Barlow Condensed','Oswald',sans-serif", letterSpacing:-1}}>
-              49
-            </text>
-
-            {/* Glow ring around fist */}
-            <circle cx="80" cy="80" r="74" fill="none" stroke="#c9a84c" strokeWidth="1.5" opacity="0.3"/>
+            <text x="80" y="86" textAnchor="middle" fill={D.bg} style={{fontSize:22,fontWeight:900,fontFamily:FF,letterSpacing:-1}}>49</text>
           </svg>
         </div>
       </div>
-
-      {/* Text */}
-      <div style={{ animation:"textRise 0.6s ease-out 0.9s both", textAlign:"center" }}>
-        <div style={{ fontSize:34, fontWeight:700, color:"#fff", letterSpacing:5, marginBottom:6, textShadow:"0 0 20px #c9a84c66" }}>
-          POWER HOUR
-        </div>
-        <div style={{ fontSize:13, color:"#c9a84c", letterSpacing:4, marginBottom:28 }}>
-          #WARRIORSWAY
-        </div>
-      </div>
-
-      {/* Phase + bar */}
-      <div style={{ animation:"textRise 0.6s ease-out 1.1s both", textAlign:"center" }}>
-        <div style={{ fontSize:11, color:"#5a7a9a", letterSpacing:3, marginBottom:12, height:18 }}>
-          {phases[phase]}{".".repeat(dots)}
-        </div>
-        <div style={{ width:180, height:2, background:"#1a2a3a", borderRadius:2, overflow:"hidden", margin:"0 auto" }}>
-          <div style={{
-            height:"100%", background:"linear-gradient(90deg,#c9a84c,#e8c96c)",
-            borderRadius:2, transition:"width 0.9s ease",
-            width:`${((phase+1)/phases.length)*100}%`,
-          }} />
+      <div style={{textAlign:"center",animation:"fadeUp 0.6s ease 0.9s both"}}>
+        <div style={{fontSize:32,fontWeight:700,color:D.textPrimary,fontFamily:FF,letterSpacing:4,marginBottom:6}}>POWER HOUR</div>
+        <div style={{fontSize:12,color:D.brand,letterSpacing:4,marginBottom:28,fontWeight:600}}>#WARRIORSWAY</div>
+        <div style={{fontSize:12,color:D.textTert,letterSpacing:2,marginBottom:12,height:18}}>{phases[phase]}{".".repeat(dots)}</div>
+        <div style={{width:160,height:2,background:D.surface,borderRadius:2,overflow:"hidden",margin:"0 auto"}}>
+          <div style={{height:"100%",width:`${((phase+1)/phases.length)*100}%`,background:D.brand,borderRadius:2,transition:"width 0.9s ease"}}/>
         </div>
       </div>
     </div>
   );
 }
-function LogoBox({ src, alt, size=60 }) {
-  return (
-    <div style={{ background:"#ffffff10", border:"2px solid #c9a84c55", borderRadius:10, padding:4, display:"flex", alignItems:"center", justifyContent:"center" }}>
-      <img src={src} alt={alt} style={{ height:size, width:size, objectFit:"contain", display:"block" }} />
+
+function SectionLabel({children,style}){
+  return <div style={{fontSize:11,fontWeight:600,color:D.textTert,letterSpacing:1,textTransform:"uppercase",marginBottom:10,...style}}>{children}</div>;
+}
+
+function SettingsGroup({title,children}){
+  return(
+    <div style={{background:D.surface,borderRadius:D.r16,padding:16,marginBottom:12,border:`1px solid ${D.divider}`}}>
+      <div style={{fontSize:11,fontWeight:600,color:D.textTert,letterSpacing:1,textTransform:"uppercase",marginBottom:12}}>{title}</div>
+      {children}
     </div>
   );
 }
-function GoldChip({ children }) {
-  return <div style={{ background:"#c9a84c22", border:"1px solid #c9a84c55", borderRadius:20, padding:"4px 12px", fontSize:12, color:"#c9a84c", fontFamily:MF, fontWeight:700, letterSpacing:1 }}>{children}</div>;
-}
-function ProgressBar({ label, right, pct, color }) {
-  return (
-    <>
-      <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"#8da0b5", marginBottom:4, letterSpacing:1, textTransform:"uppercase", fontFamily:MF }}>
-        <span>{label}</span><span style={{ color:"#c9a84c" }}>{right}</span>
+
+function SettingsToggle({label,sub,value,onChange}){
+  return(
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0"}}>
+      <div>
+        <div style={{fontSize:15,fontWeight:600,color:D.textPrimary}}>{label}</div>
+        {sub&&<div style={{fontSize:12,color:D.textTert,marginTop:2}}>{sub}</div>}
       </div>
-      <div style={{ background:"#0d1b2a", borderRadius:4, height:8, overflow:"hidden", border:"1px solid #c9a84c22" }}>
-        <div style={{ height:"100%", width:`${pct}%`, background:color, borderRadius:4, transition:"width 0.6s" }} />
-      </div>
-    </>
-  );
-}
-function SectionHeader({ children, T, style }) {
-  return <div style={{ fontSize:18, fontFamily:MF, fontWeight:700, letterSpacing:3, color:T.sectionText, textTransform:"uppercase", marginBottom:12, borderLeft:"4px solid #c9a84c", paddingLeft:12, transition:"color 0.3s", ...style }}>{children}</div>;
-}
-function CheckCard({ checked, onClick, icon, label, desc, color, T }) {
-  return (
-    <div onClick={onClick} style={{
-      background:checked?(T.card==="#ffffff"?"#f0f7ff":"#1a2a1a"):T.card,
-      border:checked?`1px solid ${color}`:`1px solid ${T.cardBorder}`,
-      borderLeft:`4px solid ${checked?color:T.cardBorder}`,
-      borderRadius:6, padding:"16px 18px", marginBottom:10,
-      cursor:"pointer", display:"flex", alignItems:"center", gap:14, transition:"all 0.2s",
-    }}>
-      <div style={{ width:40, height:40, borderRadius:"50%", background:checked?`${color}20`:T.progressBg, border:`2px solid ${checked?color:T.cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:18, flexShrink:0 }}>
-        {checked?"✓":icon}
-      </div>
-      <div style={{ flex:1 }}>
-        <div style={{ fontWeight:700, fontSize:16, color:checked?color:T.text, marginBottom:2, fontFamily:MF, letterSpacing:1, textTransform:"uppercase" }}>{label}</div>
-        <div style={{ fontSize:12, color:T.textSub, lineHeight:1.4 }}>{desc}</div>
-      </div>
-      {checked&&<div style={{ fontSize:18 }}>🔥</div>}
+      <button onClick={onChange} style={{width:50,height:28,borderRadius:14,border:"none",cursor:"pointer",position:"relative",background:value?D.brand:D.surface2,transition:"background 0.25s",flexShrink:0}}>
+        <div style={{position:"absolute",top:3,left:value?23:3,width:22,height:22,borderRadius:"50%",background:"#fff",transition:"left 0.25s",boxShadow:"0 1px 4px rgba(0,0,0,0.3)"}}/>
+      </button>
     </div>
   );
 }
