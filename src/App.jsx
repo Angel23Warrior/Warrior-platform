@@ -262,7 +262,6 @@ export default function App(){
     {id:"calendar",label:"Calendar",icon:<Calendar size={18}/>},
     {id:"leaderboard",label:"Board",icon:<Trophy size={18}/>},
     {id:"goals",label:"Goals",icon:<Target size={18}/>},
-    {id:"settings",label:"Settings",icon:<Settings size={18}/>},
     ...(profile?.role==="manager"?[{id:"admin",label:"Admin",icon:<Shield size={18}/>}]:[]),
   ];
 
@@ -659,14 +658,14 @@ function ProgressRing({pct,done,goalPct,monthPct}){
 
 function TaskRow({icon,label,desc,checked,onClick,accent,delay=0,progress}){
   return(
-    <div className="task-row" onClick={onClick} style={{background:checked?"rgba(53,193,139,0.07)":D.surface,border:checked?"1px solid rgba(53,193,139,0.2)":"1px solid "+D.divider,borderRadius:D.r12,padding:"13px 15px",marginBottom:9,display:"flex",alignItems:"center",gap:13,cursor:"pointer",transition:"all 0.18s",animation:`fadeUp 0.3s ease ${delay}ms both`}}>
+    <div className="task-row" onClick={onClick} style={{background:checked?"rgba(53,193,139,0.07)":D.surface,border:checked?"1px solid rgba(53,193,139,0.2)":"1px solid "+D.divider,borderRadius:D.r12,padding:"13px 15px",marginBottom:9,display:"flex",alignItems:"center",gap:13,cursor:"pointer",transition:"all 0.18s",animation:"fadeUp 0.3s ease "+delay+"ms both"}}>
       <div style={{width:42,height:42,borderRadius:D.r10,flexShrink:0,background:checked?"rgba(53,193,139,0.12)":"rgba(255,255,255,0.04)",border:checked?"1px solid rgba(53,193,139,0.25)":"1px solid "+D.divider,display:"flex",alignItems:"center",justifyContent:"center",fontSize:19,transition:"all 0.18s"}}>
-        {checked?<span style={{color:D.success,fontSize:17,fontWeight:700}}>✓</span>:icon}
+        {checked?<Check size={18} color={D.success} strokeWidth={2.5}/>:<C4Icon icon={icon} size={18} color={accent||D.brand}/>}
       </div>
       <div style={{flex:1,minWidth:0}}>
         <div style={{fontSize:15,fontWeight:600,color:checked?D.success:D.textPrimary,transition:"color 0.18s"}}>{label}</div>
         <div style={{fontSize:12,color:D.textTert,marginTop:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{desc}</div>
-        {progress!==undefined&&<div style={{marginTop:6,background:"rgba(255,255,255,0.05)",borderRadius:2,height:3,overflow:"hidden"}}><div style={{height:"100%",width:`${progress}%`,background:accent||D.brand,borderRadius:2,transition:"width 0.5s"}}/></div>}
+        {progress!==undefined&&<div style={{marginTop:6,background:"rgba(255,255,255,0.05)",borderRadius:2,height:3,overflow:"hidden"}}><div style={{height:"100%",width:progress+"%",background:accent||D.brand,borderRadius:2,transition:"width 0.5s"}}/></div>}
       </div>
       {checked&&<Flame size={14} color="#FF6B35" style={{flexShrink:0}}/>}
     </div>
