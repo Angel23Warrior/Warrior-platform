@@ -65,7 +65,6 @@ export default function App(){
   const [loading,setLoading]=useState(false);
   const [requestReason,setRequestReason]=useState("");
   const [requestMsg,setRequestMsg]=useState("");
-  const [darkMode,setDarkMode]=useState(true);
   const prevC4=useRef(0);
 
   useEffect(()=>{
@@ -419,10 +418,6 @@ export default function App(){
                 <div style={{fontSize:11,color:D.textTert}}>Power Hour Platform</div>
               </div>
             </div>
-
-            <SettingsGroup title="Appearance">
-              <SettingsToggle label="Dark Mode" sub="Switch between light and dark" value={darkMode} onChange={()=>setDarkMode(d=>!d)}/>
-            </SettingsGroup>
 
             <SettingsGroup title="Account">
               <div style={{padding:"10px 0",borderBottom:`1px solid ${D.divider}`}}>
