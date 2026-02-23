@@ -34,6 +34,15 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const VAPID_PUBLIC_KEY="BFbCqotZRf28v2w06_16CAunMYhHC7l0ZA9GjI6I4NKT94OmQzVUrP23lFzBwthMTV2GjC1wgeJGBoDAIwl82Bc";
 
+function urlBase64ToUint8Array(base64String){
+  const padding="=".repeat((4-base64String.length%4)%4);
+  const base64=(base64String+padding).replace(/-/g,"+").replace(/_/g,"/");
+  const rawData=window.atob(base64);
+  const outputArray=new Uint8Array(rawData.length);
+  for(let i=0;i<rawData.length;++i)outputArray[i]=rawData.charCodeAt(i);
+  return outputArray;
+}
+
 const D = {
   bg:"#070A0F", surface:"#0D1220", surface2:"#111A2D",
   divider:"rgba(255,255,255,0.08)",
