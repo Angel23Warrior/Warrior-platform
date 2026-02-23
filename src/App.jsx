@@ -62,15 +62,21 @@ function C4Icon({icon,size=18,color}){
 }
 
 const GOAL_COLORS=["#D6B25E","#35C18B","#4A9EF5","#E06FBF","#A78BFA","#F59E4A","#F87171","#6EE7B7"];
-function todayStr(){return new Date().toISOString().slice(0,10);}
-  function yesterdayStr(){const d=new Date();d.setDate(d.getDate()-1);return d.toISOString().slice(0,10);}
+function toAZDate(d){
+    // Arizona is UTC-7, no daylight saving
+    const az=new Date(d.getTime()-7*60*60*1000);
+    return az.toISOString().slice(0,10);
+  }
+  function todayStr(){return toAZDate(new Date());}
+  function yesterdayStr(){const d=new Date(new Date().getTime()-7*60*60*1000);d.setDate(d.getDate()-1);return d.toISOString().slice(0,10);}
   function isLockedDate(d){
     // Dates older than yesterday are fully locked - no edit requests
     return d<yesterdayStr();
   }
   function getMidnightCountdown(){
-    const now=new Date();
-    const midnight=new Date();
+    // Use Arizona time
+    const now=new Date(new Date().getTime()-7*60*60*1000);
+    const midnight=new Date(now);
     midnight.setHours(24,0,0,0);
     const diff=midnight-now;
     const h=Math.floor(diff/3600000);
