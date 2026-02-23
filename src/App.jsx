@@ -62,21 +62,18 @@ function C4Icon({icon,size=18,color}){
 }
 
 const GOAL_COLORS=["#D6B25E","#35C18B","#4A9EF5","#E06FBF","#A78BFA","#F59E4A","#F87171","#6EE7B7"];
-function toAZDate(d){
-    // Arizona is UTC-7, no daylight saving
-    const az=new Date(d.getTime()-7*60*60*1000);
-    return az.toISOString().slice(0,10);
+function todayStr(){
+    const d=new Date();
+    return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
   }
-  function todayStr(){return toAZDate(new Date());}
-  function yesterdayStr(){const d=new Date(new Date().getTime()-7*60*60*1000);d.setDate(d.getDate()-1);return d.toISOString().slice(0,10);}
+  function yesterdayStr(){const d=new Date();d.setDate(d.getDate()-1);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
   function isLockedDate(d){
     // Dates older than yesterday are fully locked - no edit requests
     return d<yesterdayStr();
   }
   function getMidnightCountdown(){
-    // Use Arizona time
-    const now=new Date(new Date().getTime()-7*60*60*1000);
-    const midnight=new Date(now);
+    const now=new Date();
+    const midnight=new Date();
     midnight.setHours(24,0,0,0);
     const diff=midnight-now;
     const h=Math.floor(diff/3600000);
@@ -146,7 +143,7 @@ export default function App(){
   const [calMonth,setCalMonth]=useState(new Date().getMonth());
   const [showConfetti,setShowConfetti]=useState(false);
   const [showAddGoal,setShowAddGoal]=useState(false);
-  const [dataLoaded,setDataLoaded]=useState(false);
+  const [dataLoaded,setDataLoaded]=useState(true);
   const [authMode,setAuthMode]=useState("login");
   const [email,setEmail]=useState("");
   const [password,setPassword]=useState("");
@@ -420,16 +417,7 @@ export default function App(){
             )}
 
             {/* Skeleton while loading */}
-            {!dataLoaded&&(
-              <div style={{animation:"fadeUp 0.3s ease both"}}>
-                <div className="skeleton" style={{height:280,borderRadius:D.r16,marginBottom:16}}/>
-                <div className="skeleton" style={{height:16,width:"40%",marginBottom:12,borderRadius:6}}/>
-                <div className="skeleton" style={{height:68,borderRadius:D.r12,marginBottom:9}}/>
-                <div className="skeleton" style={{height:68,borderRadius:D.r12,marginBottom:9}}/>
-                <div className="skeleton" style={{height:68,borderRadius:D.r12,marginBottom:9}}/>
-                <div className="skeleton" style={{height:68,borderRadius:D.r12,marginBottom:9}}/>
-              </div>
-            )}
+            
 
             {/* First time empty state */}
             {dataLoaded&&allLogs.length===0&&selectedDate===todayStr()&&(
