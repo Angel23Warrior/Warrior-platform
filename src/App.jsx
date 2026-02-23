@@ -143,7 +143,7 @@ export default function App(){
   const [calMonth,setCalMonth]=useState(new Date().getMonth());
   const [showConfetti,setShowConfetti]=useState(false);
   const [showAddGoal,setShowAddGoal]=useState(false);
-  const [dataLoaded,setDataLoaded]=useState(true);
+  const [dataLoaded,setDataLoaded]=useState(false);
   const [authMode,setAuthMode]=useState("login");
   const [email,setEmail]=useState("");
   const [password,setPassword]=useState("");
@@ -418,6 +418,17 @@ export default function App(){
 
             {/* Skeleton while loading */}
             
+
+            {!dataLoaded&&(
+              <div style={{animation:"fadeUp 0.3s ease both"}}>
+                <div className="skeleton" style={{height:280,borderRadius:D.r16,marginBottom:16}}/>
+                <div className="skeleton" style={{height:16,width:"40%",marginBottom:12,borderRadius:6}}/>
+                <div className="skeleton" style={{height:68,borderRadius:D.r12,marginBottom:9}}/>
+                <div className="skeleton" style={{height:68,borderRadius:D.r12,marginBottom:9}}/>
+                <div className="skeleton" style={{height:68,borderRadius:D.r12,marginBottom:9}}/>
+                <div className="skeleton" style={{height:68,borderRadius:D.r12,marginBottom:9}}/>
+              </div>
+            )}
 
             {/* First time empty state */}
             {dataLoaded&&allLogs.length===0&&selectedDate===todayStr()&&(
