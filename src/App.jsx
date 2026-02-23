@@ -103,29 +103,56 @@ const GS=()=>(
 function PushToggle({registerPush}){
   const [enabled,setEnabled]=useState(false);
   const [loading,setLoading]=useState(false);
+
   useEffect(()=>{
-    if("Notification" in window)setEnabled(Notification.permission==="granted");
+    // On load: if permission granted, try to ensure subscription exists
+    async function checkAndRegister(){
+      if(!("serviceWorker" in navigator)||!("PushManager" in window))return;
+      if(Notification.permission==="granted"){
+        const reg=await navigator.serviceWorker.ready;
+        const sub=await reg.pushManager.getSubscription();
+        if(sub){
+          // Subscription exists in browser - make sure it's in Supabase too
+          setEnabled(true);
+          await registerPush();
+        } else {
+          // Permission granted but no subscription - register fresh
+          setEnabled(false);
+        }
+      }
+    }
+    checkAndRegister();
   },[]);
+
   async function toggle(){
-    if(enabled)return; // can't programmatically disable, direct to settings
+    if(enabled){
+      // Show instructions to disable in phone settings
+      alert("To disable notifications, go to your phone Settings > Safari > Notifications and turn off warrior-platform.vercel.app");
+      return;
+    }
     setLoading(true);
     const ok=await registerPush();
     setEnabled(ok);
     setLoading(false);
   }
+
   return(
-    <button onClick={toggle} disabled={loading} style={{
-      width:44,height:26,borderRadius:13,border:"none",cursor:enabled?"default":"pointer",
-      background:enabled?"rgba(53,193,139,0.9)":"rgba(255,255,255,0.1)",
-      position:"relative",transition:"background 0.2s",flexShrink:0,
-    }}>
-      <div style={{
-        width:20,height:20,borderRadius:"50%",background:"#fff",
-        position:"absolute",top:3,transition:"left 0.2s",
-        left:enabled?21:3,
-        boxShadow:"0 1px 3px rgba(0,0,0,0.3)"
-      }}/>
-    </button>
+    <div>
+      <button onClick={toggle} disabled={loading} style={{
+        width:44,height:26,borderRadius:13,border:"none",cursor:"pointer",
+        background:enabled?"rgba(53,193,139,0.9)":"rgba(255,255,255,0.1)",
+        position:"relative",transition:"background 0.2s",flexShrink:0,
+        opacity:loading?0.5:1,
+      }}>
+        <div style={{
+          width:20,height:20,borderRadius:"50%",background:"#fff",
+          position:"absolute",top:3,transition:"left 0.2s",
+          left:enabled?21:3,
+          boxShadow:"0 1px 3px rgba(0,0,0,0.3)"
+        }}/>
+      </button>
+      {loading&&<span style={{fontSize:11,color:D.textTert,marginLeft:8}}>Setting up...</span>}
+    </div>
   );
 }
 
@@ -215,21 +242,46 @@ export default function App(){
 
   async function registerPush(){
     if(!("serviceWorker" in navigator)||!("PushManager" in window)){
-      alert("Push notifications not supported on this device/browser.");
+      console.error("Push: not supported");
       return false;
     }
     try{
-      const reg=await navigator.serviceWorker.ready;
+      // Make sure service worker is registered
+      let reg=await navigator.serviceWorker.getRegistration();
+      if(!reg){
+        reg=await navigator.serviceWorker.register("/sw.js");
+        await navigator.serviceWorker.ready;
+      }
+      reg=await navigator.serviceWorker.ready;
+
       const permission=await Notification.requestPermission();
-      if(permission!=="granted"){return false;}
-      const sub=await reg.pushManager.subscribe({
-        userVisibleOnly:true,
-        applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-      });
-      await supabase.from("push_subscriptions").upsert({user_id:user.id,subscription:sub.toJSON()},{onConflict:"user_id"});
+      if(permission!=="granted"){
+        console.error("Push: permission denied");
+        return false;
+      }
+
+      // Get existing subscription or create new one
+      let sub=await reg.pushManager.getSubscription();
+      if(!sub){
+        sub=await reg.pushManager.subscribe({
+          userVisibleOnly:true,
+          applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        });
+      }
+
+      // Save to Supabase
+      const {error}=await supabase.from("push_subscriptions").upsert(
+        {user_id:user.id,subscription:sub.toJSON()},
+        {onConflict:"user_id"}
+      );
+      if(error){
+        console.error("Push: failed to save subscription",error);
+        return false;
+      }
+      console.log("Push: subscription saved successfully");
       return true;
     }catch(e){
-      console.error("Push registration failed:",e);
+      console.error("Push registration failed:",e.message);
       return false;
     }
   }
