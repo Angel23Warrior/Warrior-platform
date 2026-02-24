@@ -18,7 +18,7 @@ module.exports = async function handler(req, res) {
   const { user_id, title, body } = req.body;
 
   const supabase = createClient(
-    process.env.VITE_SUPABASE_URL,
+    process.env.SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY
   );
 
