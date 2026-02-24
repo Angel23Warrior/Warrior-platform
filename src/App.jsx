@@ -32,7 +32,7 @@ import { WW_LOGO, B49_LOGO } from "./logos.js";
 const SUPABASE_URL = "https://ntcsjtyiefusaqsehgfl.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im50Y3NqdHlpZWZ1c2Fxc2VoZ2ZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3MjU4MzcsImV4cCI6MjA4NzMwMTgzN30.NRlzdtfR6BiEwZGRe5VJKVlo8i5-qmI9cmUkzHgTgV8";
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-const VAPID_PUBLIC_KEY="BFbCqotZRf28v2w06_16CAunMYhHC7l0ZA9GjI6I4NKT94OmQzVUrP23lFzBwthMTV2GjC1wgeJGBoDAIwl82Bc";
+const VAPID_PUBLIC_KEY="BBmj-bG2GR2GmhbQsDeuxMScsBJvoHQEbKtUgD_wJL1SLDyQcwm6IQeI6_f6gUm2RAE_uiwiCr4GyP0pP2WQ6rs";
 
 function urlBase64ToUint8Array(base64String){
   const padding="=".repeat((4-base64String.length%4)%4);
@@ -303,9 +303,14 @@ export default function App(){
     return !!sub;
   }
 
-  async function sendPushToUser(userId, title, body, url="/"){
+  async function sendPushToUser(userId, title, body){
     try{
-      await supabase.functions.invoke("send-push",{body:{user_id:userId,title,body,url}});
+      const res=await fetch("/api/send-push",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({user_id:userId,title,body})
+      });
+      console.log("Push send result:",res.status);
     }catch(e){console.error("Push send failed:",e);}
   }
 
