@@ -75,10 +75,9 @@ function todayStr(){
     const d=new Date();
     return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
   }
-  function isCore4Locked(){
+  function isCore4Locked(date){
     // Core 4 locks at 10am local time for today only
-    // Past days follow normal edit request flow
-    if(selectedDate!==todayStr())return false;
+    if(date!==todayStr())return false;
     const now=new Date();
     return now.getHours()>=10;
   }
@@ -618,7 +617,7 @@ export default function App(){
                   </div>
                 )}
                 {/* Core 4 10am lock for today */}
-                {isCore4Locked()&&!hasApprovedRequest(selectedDate)?(
+                {isCore4Locked(selectedDate)&&!hasApprovedRequest(selectedDate)?(
                   <div style={{background:D.surface,borderRadius:D.r16,padding:20,marginBottom:4}}>
                     <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
                       <Lock size={15} color={D.brand}/>
