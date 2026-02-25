@@ -1015,16 +1015,7 @@ function AddGoalSheet({userId,setGoals,onClose}){
           <label style={{fontSize:11,color:D.textTert,fontWeight:600,letterSpacing:0.5,display:"block",marginBottom:6}}>HOW MANY TIMES PER {period.toUpperCase()}?</label>
           <input type="number" value={target} onChange={e=>setTarget(e.target.value)} min={1} style={{width:"100%",background:D.bg,border:"1px solid "+D.divider,borderRadius:D.r10,padding:"12px 14px",color:D.textPrimary,fontSize:15,outline:"none"}}/>
         </div>
-        <div style={{display:"none",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:16}}>
-          <div>
-            <label style={{fontSize:11,color:D.textTert,fontWeight:600,letterSpacing:0.5,display:"block",marginBottom:6}}>TARGET</label>
-            <input type="number" value={target} onChange={e=>setTarget(e.target.value)} min={1} style={{width:"100%",background:D.bg,border:"1px solid "+D.divider,borderRadius:D.r10,padding:"12px 14px",color:D.textPrimary,fontSize:15,outline:"none"}}/>
-          </div>
-          <div>
-            <label style={{fontSize:11,color:D.textTert,fontWeight:600,letterSpacing:0.5,display:"block",marginBottom:6}}>UNIT</label>
-            <input value={unit} onChange={e=>setUnit(e.target.value)} placeholder="times" style={{width:"100%",background:D.bg,border:"1px solid "+D.divider,borderRadius:D.r10,padding:"12px 14px",color:D.textPrimary,fontSize:15,outline:"none"}}/>
-          </div>
-        </div>
+        
         <label style={{fontSize:11,color:D.textTert,fontWeight:600,letterSpacing:0.5,display:"block",marginBottom:10}}>COLOR</label>
         <div style={{display:"flex",gap:10,marginBottom:24,flexWrap:"wrap"}}>
           {GOAL_COLORS.map(c=>(
