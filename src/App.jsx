@@ -857,8 +857,8 @@ export default function App(){
                 <div style={{fontSize:13,color:D.textSec,background:D.bg,borderRadius:D.r8,padding:"10px 12px",marginBottom:req.status==="pending"?12:0}}>"{req.reason}"</div>
                 {req.status==="pending"?(
                   <div style={{display:"flex",gap:8}}>
-                    <button onClick={()=>reviewEditRequest(req.id,"approved")} style={{flex:1,padding:10,background:D.successMuted,border:`1px solid rgba(53,193,139,0.3)`,color:D.success,borderRadius:D.r10,cursor:"pointer",fontSize:14,fontWeight:600}}>Approve</button>
-                    <button onClick={()=>reviewEditRequest(req.id,"denied")}   style={{flex:1,padding:10,background:"rgba(255,90,95,0.08)",border:`1px solid rgba(255,90,95,0.2)`,color:D.danger,borderRadius:D.r10,cursor:"pointer",fontSize:14,fontWeight:600}}>Deny</button>
+                    <button onClick={()=>reviewEditRequest(req.id,"approved")} style={{flex:1,padding:10,background:D.successMuted,border:"1px solid rgba(53,193,139,0.3)",color:D.success,borderRadius:D.r10,cursor:"pointer",fontSize:14,fontWeight:600}}>Approve</button>
+                    <button onClick={()=>reviewEditRequest(req.id,"denied")}   style={{flex:1,padding:10,background:"rgba(255,90,95,0.08)",border:"1px solid rgba(255,90,95,0.2)",color:D.danger,borderRadius:D.r10,cursor:"pointer",fontSize:14,fontWeight:600}}>Deny</button>
                   </div>
                 ):(
                   <button onClick={()=>reviewEditRequest(req.id,"pending")} style={{padding:"8px 16px",background:D.surface2,border:"1px solid "+D.divider,color:D.textTert,borderRadius:D.r10,cursor:"pointer",fontSize:13,fontWeight:600}}>↩ Reset to Pending</button>
@@ -938,7 +938,7 @@ function GoalsScreen({goals,setGoals,goalCompletions,userId,onAddGoal}){
     <div style={{animation:"fadeUp 0.35s ease both"}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
         <div style={{fontSize:22,fontWeight:700,color:D.textPrimary,fontFamily:FF,letterSpacing:1}}>Goals</div>
-        <button onClick={onAddGoal} style={{background:D.brandMuted,border:`1px solid rgba(214,178,94,0.3)`,color:D.brand,borderRadius:D.r12,padding:"8px 16px",cursor:"pointer",fontSize:14,fontWeight:600}}>+ Add</button>
+        <button onClick={onAddGoal} style={{background:D.brandMuted,border:"1px solid rgba(214,178,94,0.3)",color:D.brand,borderRadius:D.r12,padding:"8px 16px",cursor:"pointer",fontSize:14,fontWeight:600}}>+ Add</button>
       </div>
       <div style={{background:D.surface,borderRadius:D.r16,padding:16,marginBottom:16,border:"1px solid "+D.divider}}>
         <div style={{fontSize:11,color:D.textTert,fontWeight:600,letterSpacing:1,textTransform:"uppercase",marginBottom:12}}>Core 4 — Daily</div>
@@ -1019,7 +1019,7 @@ function AddGoalSheet({userId,setGoals,onClose}){
         <div style={{display:"none",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:16}}>
           <div>
             <label style={{fontSize:11,color:D.textTert,fontWeight:600,letterSpacing:0.5,display:"block",marginBottom:6}}>TARGET</label>
-            <input type="number" value={target} onChange={e=>setTarget(e.target.value)} min={1} style={{width:"100%",background:D.bg,border:"1px solid "+D.divider`,borderRadius:D.r10,padding:"12px 14px",color:D.textPrimary,fontSize:15,outline:"none"}}/>
+            <input type="number" value={target} onChange={e=>setTarget(e.target.value)} min={1} style={{width:"100%",background:D.bg,border:"1px solid "+D.divider,borderRadius:D.r10,padding:"12px 14px",color:D.textPrimary,fontSize:15,outline:"none"}}/>
           </div>
           <div>
             <label style={{fontSize:11,color:D.textTert,fontWeight:600,letterSpacing:0.5,display:"block",marginBottom:6}}>UNIT</label>
@@ -1044,7 +1044,7 @@ function EditRequestCard({selectedDate,editRequests,requestReason,setRequestReas
   const pending=editRequests.some(r=>r.requested_date===selectedDate&&r.status==="pending");
   const denied=editRequests.some(r=>r.requested_date===selectedDate&&r.status==="denied");
   return(
-    <div style={{background:D.surface,borderRadius:D.r16,padding:20,marginBottom:12,border:`1px solid rgba(214,178,94,0.18)`}}>
+    <div style={{background:D.surface,borderRadius:D.r16,padding:20,marginBottom:12,border:"1px solid rgba(214,178,94,0.18)"}}>
       <div style={{fontSize:15,fontWeight:700,color:D.textPrimary,marginBottom:6,display:"flex",alignItems:"center",gap:8}}><Lock size={15} color={D.brand}/>Edit Request Required</div>
       <div style={{fontSize:13,color:D.textTert,marginBottom:16,lineHeight:1.6}}>Past days require manager approval. Tell them why you missed logging.</div>
       {pending?<div style={{background:D.brandMuted,borderRadius:D.r10,padding:"10px 14px",fontSize:13,color:D.brand,display:"flex",alignItems:"center",gap:8}}><Clock size={14}/>Request pending — waiting for approval</div>
@@ -1053,7 +1053,7 @@ function EditRequestCard({selectedDate,editRequests,requestReason,setRequestReas
         <>
           <textarea value={requestReason} onChange={e=>setRequestReason(e.target.value)} placeholder="Why do you need to edit this day?" rows={3} style={{width:"100%",background:D.bg,border:"1px solid "+D.divider,borderRadius:D.r10,padding:"12px 14px",color:D.textPrimary,fontSize:13,outline:"none",resize:"vertical",marginBottom:10}}/>
           {requestMsg&&<div style={{fontSize:12,color:requestMsg.startsWith("✅")?D.success:D.danger,marginBottom:10}}>{requestMsg}</div>}
-          <button onClick={onSubmit} disabled={!requestReason.trim()} style={{padding:"11px 22px",background:D.brandMuted,border:`1px solid rgba(214,178,94,0.3)`,color:D.brand,borderRadius:D.r10,cursor:"pointer",fontSize:14,fontWeight:600,opacity:!requestReason.trim()?0.5:1}}>Send Request</button>
+          <button onClick={onSubmit} disabled={!requestReason.trim()} style={{padding:"11px 22px",background:D.brandMuted,border:"1px solid rgba(214,178,94,0.3)",color:D.brand,borderRadius:D.r10,cursor:"pointer",fontSize:14,fontWeight:600,opacity:!requestReason.trim()?0.5:1}}>Send Request</button>
         </>
       )}
     </div>
@@ -1158,12 +1158,12 @@ function LeaderboardScreen({leaderboard,allLogs,goalCompletions,userId,now2}){
           {/* 1st */}
           <div style={{flex:1,textAlign:"center",animation:"fadeUp 0.4s ease 0ms both"}}>
             <div style={{marginBottom:4,color:D.brand}}><Crown size={22} fill={D.brand}/></div>
-            <div style={{width:56,height:56,borderRadius:"50%",background:D.brandMuted,border:"2px solid "+D.brand,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,fontWeight:700,color:D.brand,margin:"0 auto 6px",boxShadow:`0 0 16px rgba(214,178,94,0.3)`}}>
+            <div style={{width:56,height:56,borderRadius:"50%",background:D.brandMuted,border:"2px solid "+D.brand,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,fontWeight:700,color:D.brand,margin:"0 auto 6px",boxShadow:"0 0 16px rgba(214,178,94,0.3)"}}>
               {sorted[0]?.name?.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase()}
             </div>
             <div style={{fontSize:13,fontWeight:700,color:D.textPrimary,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:90,margin:"0 auto"}}>{sorted[0]?.name?.split(" ")[0]}</div>
             <div style={{fontSize:20,fontWeight:700,color:D.brand,fontFamily:FF}}>{sorted[0]?.score}</div>
-            <div style={{background:D.brandMuted,border:`1px solid rgba(214,178,94,0.3)`,borderRadius:"6px 6px 0 0",height:80,marginTop:8,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>1</div>
+            <div style={{background:D.brandMuted,border:"1px solid rgba(214,178,94,0.3)",borderRadius:"6px 6px 0 0",height:80,marginTop:8,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>1</div>
           </div>
           {/* 3rd */}
           <div style={{flex:1,textAlign:"center",animation:"fadeUp 0.4s ease 120ms both"}}>
@@ -1184,7 +1184,7 @@ function LeaderboardScreen({leaderboard,allLogs,goalCompletions,userId,now2}){
         const initials=entry.name?.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase()||"?";
         return(
           <div key={entry.id} style={{
-            background:isYou?`rgba(53,193,139,0.07)`:D.surface,
+            background:isYou?"rgba(53,193,139,0.07)":D.surface,
             border:isYou?"1px solid rgba(53,193,139,0.2)":"1px solid "+D.divider,
             borderRadius:D.r12,padding:"12px 14px",marginBottom:8,
             display:"flex",alignItems:"center",gap:12,
@@ -1222,11 +1222,11 @@ function LeaderboardScreen({leaderboard,allLogs,goalCompletions,userId,now2}){
       {myRank>2&&me&&(
         <div style={{
           position:"sticky",bottom:92,
-          background:`rgba(13,18,32,0.96)`,
+          background:"rgba(13,18,32,0.96)",
           backdropFilter:"blur(12px)",
           WebkitBackdropFilter:"blur(12px)",
           borderRadius:D.r12,padding:"12px 14px",
-          border:`1px solid rgba(53,193,139,0.3)`,
+          border:"1px solid rgba(53,193,139,0.3)",
           display:"flex",alignItems:"center",gap:12,
           marginTop:8,
           boxShadow:"0 -4px 20px rgba(0,0,0,0.4)",
