@@ -873,7 +873,7 @@ export default function App(){
         {tabs.map(tab=>{
           const active=screen===tab.id;
           return(
-            <button key={tab.id} onClick={()=>setScreen(tab.id)} style={{background:"none",border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:3,padding:"4px 10px",color:active?D.brand:D.textTert,transition:"color 0.2s"}}>
+            <button key={tab.id} onClick={()=>setScreen(tab.id)} onTouchEnd={e=>{e.preventDefault();setScreen(tab.id);}} style={{background:"none",border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:3,padding:"4px 10px",color:active?D.brand:D.textTert,transition:"color 0.2s",WebkitTapHighlightColor:"transparent",touchAction:"manipulation"}}>
               <span style={{fontSize:20,lineHeight:1}}>{tab.icon}</span>
               <span style={{fontSize:10,fontWeight:600,letterSpacing:0.3}}>{tab.label}</span>
               {active&&<div style={{width:4,height:4,borderRadius:"50%",background:D.brand}}/>}
