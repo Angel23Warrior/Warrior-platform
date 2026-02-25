@@ -214,6 +214,13 @@ export default function App(){
       }
     });
     const {data:{subscription}}=supabase.auth.onAuthStateChange((_e,session)=>{
+      // Handle password recovery flow
+      if(_e==="PASSWORD_RECOVERY"){
+        setUser(null); // don't log them in yet
+        setAuthMode("reset");
+        setReady(true);
+        return;
+      }
       if(session?.user){setUser(session.user);loadUserData(session.user.id);
         // Register service worker
         if("serviceWorker" in navigator){
@@ -453,6 +460,22 @@ export default function App(){
   const ringPct=(core4Done/4)*100;
 
   if(screen==="loading")return <LoadingScreen/>;
+  if(authMode==="reset")return(
+    <div style={{minHeight:"100vh",background:D.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24,fontFamily:FB}}>
+      <GS/>
+      <div style={{width:"100%",maxWidth:380,animation:"fadeUp 0.5s ease both"}}>
+        <div style={{textAlign:"center",marginBottom:32}}>
+          <div style={{fontSize:28,fontWeight:700,color:D.textPrimary,fontFamily:FF,letterSpacing:2}}>SET NEW PASSWORD</div>
+          <div style={{fontSize:13,color:D.textTert,marginTop:8}}>Enter your new password below</div>
+        </div>
+        <input value={newPassword} onChange={e=>setNewPassword(e.target.value)} placeholder="New password (min 6 chars)" type="password" style={{width:"100%",background:D.surface,border:"1px solid "+D.divider,borderRadius:D.r12,padding:"14px 16px",color:D.textPrimary,fontSize:15,outline:"none",marginBottom:16}}/>
+        {authError&&<div style={{fontSize:13,color:authError.startsWith("✅")?D.success:D.danger,background:authError.startsWith("✅")?"rgba(53,193,139,0.1)":"rgba(255,90,95,0.1)",borderRadius:D.r10,padding:"10px 14px",marginBottom:14}}>{authError}</div>}
+        <button onClick={handleResetPassword} disabled={loading} style={{width:"100%",padding:15,background:D.brand,border:"none",borderRadius:D.r12,cursor:"pointer",color:"#000",fontSize:16,fontWeight:700,opacity:loading?0.5:1}}>
+          {loading?"…":"Update Password"}
+        </button>
+      </div>
+    </div>
+  );
   if(screen==="login"||screen==="signup")return(
     authMode==="reset"?(
     <div style={{minHeight:"100vh",background:D.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24,fontFamily:FB}}>
