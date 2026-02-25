@@ -75,6 +75,13 @@ function todayStr(){
     const d=new Date();
     return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
   }
+  function isCore4Locked(){
+    // Core 4 locks at 10am local time for today only
+    // Past days follow normal edit request flow
+    if(selectedDate!==todayStr())return false;
+    const now=new Date();
+    return now.getHours()>=10;
+  }
   function yesterdayStr(){const d=new Date();d.setDate(d.getDate()-1);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
   function isLockedDate(d){
     // Dates older than yesterday are fully locked - no edit requests
@@ -181,6 +188,7 @@ export default function App(){
   const [showAddGoal,setShowAddGoal]=useState(false);
   const [dataLoaded,setDataLoaded]=useState(false);
   const [authMode,setAuthMode]=useState("login");
+  const [newPassword,setNewPassword]=useState("");
   const [email,setEmail]=useState("");
   const [password,setPassword]=useState("");
   const [uname,setUname]=useState("");
@@ -336,6 +344,24 @@ export default function App(){
     setLoading(false);
   }
 
+  async function handleResetPassword(){
+    if(!newPassword||newPassword.length<6){setAuthError("Password must be at least 6 characters.");return;}
+    setLoading(true);setAuthError("");
+    const {error}=await supabase.auth.updateUser({password:newPassword});
+    if(error){setAuthError(error.message);}
+    else{setAuthError("✅ Password updated! You can now sign in.");setAuthMode("login");setNewPassword("");}
+    setLoading(false);
+  }
+
+  async function handleForgotPassword(){
+    if(!email){setAuthError("Enter your email first, then tap Forgot Password.");return;}
+    setLoading(true);setAuthError("");
+    const {error}=await supabase.auth.resetPasswordForEmail(email,{redirectTo:"https://warrior-platform.vercel.app"});
+    if(error){setAuthError(error.message);}
+    else{setAuthError("✅ Password reset email sent! Check your inbox.");}
+    setLoading(false);
+  }
+
   async function handleSignup(){
     if(!email||!password||!uname){setAuthError("Please fill in all fields.");return;}
     setLoading(true);setAuthError("");
@@ -429,9 +455,26 @@ export default function App(){
 
   if(screen==="loading")return <LoadingScreen/>;
   if(screen==="login"||screen==="signup")return(
+    authMode==="reset"?(
+    <div style={{minHeight:"100vh",background:D.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24,fontFamily:FB}}>
+      <GS/>
+      <div style={{width:"100%",maxWidth:380,animation:"fadeUp 0.5s ease both"}}>
+        <div style={{textAlign:"center",marginBottom:32}}>
+          <div style={{fontSize:28,fontWeight:700,color:D.textPrimary,fontFamily:FF,letterSpacing:2}}>SET NEW PASSWORD</div>
+          <div style={{fontSize:13,color:D.textTert,marginTop:8}}>Enter your new password below</div>
+        </div>
+        <input value={newPassword} onChange={e=>setNewPassword(e.target.value)} placeholder="New password (min 6 chars)" type="password" style={{width:"100%",background:D.surface,border:"1px solid "+D.divider,borderRadius:D.r12,padding:"14px 16px",color:D.textPrimary,fontSize:15,outline:"none",marginBottom:16}}/>
+        {authError&&<div style={{fontSize:13,color:authError.startsWith("✅")?D.success:D.danger,background:authError.startsWith("✅")?"rgba(53,193,139,0.1)":"rgba(255,90,95,0.1)",borderRadius:D.r10,padding:"10px 14px",marginBottom:14}}>{authError}</div>}
+        <button onClick={handleResetPassword} disabled={loading} style={{width:"100%",padding:15,background:D.brand,border:"none",borderRadius:D.r12,cursor:"pointer",color:"#000",fontSize:16,fontWeight:700,opacity:loading?0.5:1}}>
+          {loading?"…":"Update Password"}
+        </button>
+      </div>
+    </div>
+  ):(
     <AuthScreen mode={authMode} setMode={setAuthMode} email={email} setEmail={setEmail}
       password={password} setPassword={setPassword} name={uname} setName={setUname}
-      onLogin={handleLogin} onSignup={handleSignup} loading={loading} error={authError}/>
+      onLogin={handleLogin} onSignup={handleSignup} onForgotPassword={handleForgotPassword} loading={loading} error={authError}/>
+  )
   );
 
   const tabs=[
@@ -574,9 +617,28 @@ export default function App(){
                     <button onClick={lockEditAfterChanges} style={{background:D.success,border:"none",borderRadius:20,padding:"6px 14px",color:"#000",fontSize:12,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:5}}><Lock size={12}/>Submit & Lock</button>
                   </div>
                 )}
-                {CORE4.map((item,i)=>(
-                  <TaskRow key={item.id} icon={item.icon} label={item.label} desc={item.desc} checked={!!selLog[item.id]} onClick={()=>toggleCore4(item.id)} delay={i*50}/>
-                ))}
+                {/* Core 4 10am lock for today */}
+                {isCore4Locked()&&!hasApprovedRequest(selectedDate)?(
+                  <div style={{background:D.surface,borderRadius:D.r16,padding:20,marginBottom:4}}>
+                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
+                      <Lock size={15} color={D.brand}/>
+                      <span style={{fontSize:14,fontWeight:700,color:D.textPrimary}}>Core 4 Locked — 10am Cutoff Passed</span>
+                    </div>
+                    {CORE4.map((item,i)=>(
+                      <div key={item.id} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 0",borderBottom:i<3?"1px solid "+D.divider:"none",opacity:0.5}}>
+                        <div style={{width:32,height:32,borderRadius:"50%",background:selLog[item.id]?"rgba(53,193,139,0.15)":"rgba(255,255,255,0.05)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                          {selLog[item.id]?<Check size={14} color={D.success}/>:<X size={14} color={D.danger}/>}
+                        </div>
+                        <span style={{fontSize:14,color:selLog[item.id]?D.success:D.danger,fontWeight:600}}>{item.label} — {selLog[item.id]?"Completed":"Missed"}</span>
+                      </div>
+                    ))}
+                    <div style={{marginTop:14,fontSize:12,color:D.textTert}}>Need to make changes? Submit an edit request to your manager.</div>
+                  </div>
+                ):(
+                  CORE4.map((item,i)=>(
+                    <TaskRow key={item.id} icon={item.icon} label={item.label} desc={item.desc} checked={!!selLog[item.id]} onClick={()=>toggleCore4(item.id)} delay={i*50}/>
+                  ))
+                )}
               </>
             )}
 
@@ -903,7 +965,7 @@ function GoalsScreen({goals,setGoals,goalCompletions,userId,onAddGoal}){
                 <div style={{width:10,height:10,borderRadius:"50%",background:goal.color,flexShrink:0}}/>
                 <div>
                   <div style={{fontSize:15,fontWeight:600,color:D.textPrimary}}>{goal.name}</div>
-                  <div style={{fontSize:12,color:D.textTert,marginTop:1}}>Target: {goal.target} {goal.unit}</div>
+                  <div style={{fontSize:12,color:D.textTert,marginTop:1}}>{goal.target}x per {goal.unit||"day"}</div>
                 </div>
               </div>
               <div style={{display:"flex",alignItems:"center",gap:10}}>
@@ -922,13 +984,14 @@ function GoalsScreen({goals,setGoals,goalCompletions,userId,onAddGoal}){
 
 function AddGoalSheet({userId,setGoals,onClose}){
   const [name,setName]=useState("");
-  const [target,setTarget]=useState(20);
-  const [unit,setUnit]=useState("times");
+  const [target,setTarget]=useState(1);
+  const [period,setPeriod]=useState("daily");
   const [color,setColor]=useState(GOAL_COLORS[0]);
   const [saving,setSaving]=useState(false);
   async function save(){
     if(!name.trim())return;
     setSaving(true);
+    const unit=period; // store period as unit field
     const {data}=await supabase.from("goals").insert({user_id:userId,name:name.trim(),target:Number(target),unit,color}).select().single();
     if(data)setGoals(prev=>[...prev,data]);
     onClose();
@@ -941,10 +1004,22 @@ function AddGoalSheet({userId,setGoals,onClose}){
         <div style={{fontSize:18,fontWeight:700,color:D.textPrimary,marginBottom:20}}>New Goal</div>
         <label style={{fontSize:11,color:D.textTert,fontWeight:600,letterSpacing:0.5,display:"block",marginBottom:6}}>GOAL NAME</label>
         <input value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Go to gym" style={{width:"100%",background:D.bg,border:`1px solid ${D.divider}`,borderRadius:D.r10,padding:"12px 14px",color:D.textPrimary,fontSize:15,outline:"none",marginBottom:16}}/>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:16}}>
+        <div style={{marginBottom:16}}>
+          <label style={{fontSize:11,color:D.textTert,fontWeight:600,letterSpacing:0.5,display:"block",marginBottom:8}}>FREQUENCY</label>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:12}}>
+            {["daily","weekly","monthly"].map(p=>(
+              <button key={p} onClick={()=>setPeriod(p)} style={{padding:"10px 0",borderRadius:D.r10,border:"1px solid "+(period===p?color:"rgba(255,255,255,0.1)"),background:period===p?"rgba(214,178,94,0.1)":D.bg,color:period===p?color:D.textTert,fontSize:13,fontWeight:600,cursor:"pointer",textTransform:"capitalize"}}>
+                {p}
+              </button>
+            ))}
+          </div>
+          <label style={{fontSize:11,color:D.textTert,fontWeight:600,letterSpacing:0.5,display:"block",marginBottom:6}}>HOW MANY TIMES PER {period.toUpperCase()}?</label>
+          <input type="number" value={target} onChange={e=>setTarget(e.target.value)} min={1} style={{width:"100%",background:D.bg,border:"1px solid "+D.divider,borderRadius:D.r10,padding:"12px 14px",color:D.textPrimary,fontSize:15,outline:"none"}}/>
+        </div>
+        <div style={{display:"none",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:16}}>
           <div>
             <label style={{fontSize:11,color:D.textTert,fontWeight:600,letterSpacing:0.5,display:"block",marginBottom:6}}>TARGET</label>
-            <input type="number" value={target} onChange={e=>setTarget(e.target.value)} min={1} style={{width:"100%",background:D.bg,border:`1px solid ${D.divider}`,borderRadius:D.r10,padding:"12px 14px",color:D.textPrimary,fontSize:15,outline:"none"}}/>
+            <input type="number" value={target} onChange={e=>setTarget(e.target.value)} min={1} style={{width:"100%",background:D.bg,border:"1px solid "+D.divider`,borderRadius:D.r10,padding:"12px 14px",color:D.textPrimary,fontSize:15,outline:"none"}}/>
           </div>
           <div>
             <label style={{fontSize:11,color:D.textTert,fontWeight:600,letterSpacing:0.5,display:"block",marginBottom:6}}>UNIT</label>
@@ -985,9 +1060,9 @@ function EditRequestCard({selectedDate,editRequests,requestReason,setRequestReas
   );
 }
 
-function AuthScreen({mode,setMode,email,setEmail,password,setPassword,name,setName,onLogin,onSignup,loading,error}){
+function AuthScreen({mode,setMode,email,setEmail,password,setPassword,name,setName,onLogin,onSignup,onForgotPassword,loading,error}){
   const isS=mode==="signup";
-  const inp={width:"100%",background:D.surface,border:`1px solid ${D.divider}`,borderRadius:D.r12,padding:"14px 16px",color:D.textPrimary,fontSize:15,outline:"none"};
+  const inp={width:"100%",background:D.surface,border:"1px solid "+D.divider,borderRadius:D.r12,padding:"14px 16px",color:D.textPrimary,fontSize:15,outline:"none"};
   return(
     <div style={{minHeight:"100vh",background:D.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24,fontFamily:FB}}>
       <GS/>
@@ -1012,6 +1087,7 @@ function AuthScreen({mode,setMode,email,setEmail,password,setPassword,name,setNa
         <div style={{textAlign:"center",fontSize:14,color:D.textTert}}>
           {isS?"Already have an account? ":"New warrior? "}
           <span style={{color:D.brand,cursor:"pointer",fontWeight:600}} onClick={()=>setMode(isS?"login":"signup")}>{isS?"Sign in":"Create account"}</span>
+        {!isS&&<div style={{textAlign:"center",marginTop:8}}><button onClick={onForgotPassword} style={{background:"none",border:"none",color:D.textTert,fontSize:13,cursor:"pointer",textDecoration:"underline"}}>Forgot password?</button></div>}
         </div>
         <div style={{textAlign:"center",fontSize:12,color:D.textTert,marginTop:8}}>Use your work email to join the team</div>
       </div>
