@@ -493,7 +493,7 @@ export default function App(){
       {showConfetti&&(
         <div style={{position:"fixed",top:0,left:0,right:0,zIndex:999,pointerEvents:"none",height:200}}>
           {Array.from({length:24},(_,i)=>(
-            <div key={i} style={{position:"absolute",left:`${5+Math.random()*90}%`,width:7,height:7,borderRadius:i%2===0?"50%":2,background:[D.brand,D.success,"#4A9EF5","#fff"][i%4],animation:`confettiFall ${0.8+Math.random()*1.2}s ease-out ${Math.random()*0.4}s forwards`}}/>
+            <div key={i} style={{position:"absolute",left:(5+Math.random()*90)+"%",width:7,height:7,borderRadius:i%2===0?"50%":2,background:[D.brand,D.success,"#4A9EF5","#fff"][i%4],animation:"confettiFall "+(0.8+Math.random()*1.2)+"s ease-out "+(Math.random()*0.4)+"s forwards"}}/>
           ))}
         </div>
       )}
@@ -521,7 +521,7 @@ export default function App(){
         {screen==="dashboard"&&(
           <div style={{animation:"fadeUp 0.35s ease both"}}>
             {selectedDate!==todayStr()&&(
-              <div style={{background:D.surface,borderRadius:D.r12,padding:"10px 16px",marginBottom:16,display:"flex",justifyContent:"space-between",alignItems:"center",border:`1px solid ${D.divider}`}}>
+              <div style={{background:D.surface,borderRadius:D.r12,padding:"10px 16px",marginBottom:16,display:"flex",justifyContent:"space-between",alignItems:"center",border:"1px solid "+D.divider}}>
                 <span style={{fontSize:14,color:D.textSec}}>{new Date(selectedDate+"T12:00:00").toLocaleDateString("default",{weekday:"long",month:"long",day:"numeric"})}</span>
                 <button onClick={()=>setSelectedDate(todayStr())} style={{background:"none",border:"none",color:D.brand,cursor:"pointer",fontSize:13,fontWeight:600}}>← Today</button>
               </div>
@@ -551,7 +551,7 @@ export default function App(){
               </div>
             )}
 
-            <div style={{background:D.surface,borderRadius:D.r16,padding:"28px 20px 24px",marginBottom:16,textAlign:"center",boxShadow:"0 10px 30px rgba(0,0,0,0.35)",border:`1px solid ${D.divider}`}}>
+            <div style={{background:D.surface,borderRadius:D.r16,padding:"28px 20px 24px",marginBottom:16,textAlign:"center",boxShadow:"0 10px 30px rgba(0,0,0,0.35)",border:"1px solid "+D.divider}}>
               <ProgressRing pct={ringPct} done={core4Done} goalPct={goals.length>0?Math.round((goalCompletions.filter(gc=>gc.completion_date===selectedDate).length/goals.length)*100):0} monthPct={monthPct}/>
               <div style={{fontSize:14,color:D.textSec,marginTop:14,letterSpacing:0.2}}>
                 {core4Done===4?"🔥 You won today. Come back tomorrow.":core4Done===0?"Complete your Core 4. No excuses.":"Keep going — win the day."}
@@ -564,14 +564,14 @@ export default function App(){
                   {color:"#E06FBF", label:"Month"},
                 ].map(l=>(
                   <div key={l.label} style={{display:"flex",alignItems:"center",gap:5}}>
-                    <div style={{width:8,height:8,borderRadius:"50%",background:l.color,boxShadow:`0 0 4px ${l.color}`}}/>
+                    <div style={{width:8,height:8,borderRadius:"50%",background:l.color,boxShadow:"0 0 4px "+l.color}}/>
                     <span style={{fontSize:11,color:D.textTert}}>{l.label}</span>
                   </div>
                 ))}
               </div>
               <div style={{display:"flex",justifyContent:"center",gap:10,marginTop:18,flexWrap:"wrap"}}>
-                {[{label:"pts",value:score},{label:"streak",value:`${streak}d`},{label:"logged",value:`${allLogs.length}d`}].map(s=>(
-                  <div key={s.label} style={{background:D.bg,borderRadius:D.r12,padding:"8px 16px",border:`1px solid ${D.divider}`}}>
+                {[{label:"pts",value:score},{label:"streak",value:streak+"d"},{label:"logged",value:allLogs.length+"d"}].map(s=>(
+                  <div key={s.label} style={{background:D.bg,borderRadius:D.r12,padding:"8px 16px",border:"1px solid "+D.divider}}>
                     <div style={{fontSize:18,fontWeight:700,color:D.brand,fontFamily:FF,lineHeight:1}}>{s.value}</div>
                     <div style={{fontSize:11,color:D.textTert,marginTop:2}}>{s.label}</div>
                   </div>
@@ -583,7 +583,7 @@ export default function App(){
                   <span style={{color:D.brand}}>{fullDays} full days · {monthPct}%</span>
                 </div>
                 <div style={{background:D.bg,borderRadius:4,height:4,overflow:"hidden"}}>
-                  <div style={{height:"100%",width:`${monthPct}%`,background:`linear-gradient(90deg,${D.brand},#F0D080)`,borderRadius:4,transition:"width 0.6s ease"}}/>
+                  <div style={{height:"100%",width:monthPct+"%",background:"linear-gradient(90deg,"+D.brand+",#F0D080)",borderRadius:4,transition:"width 0.6s ease"}}/>
                 </div>
                 {goals.length>0&&(()=>{
                   const totalGoalDays=goals.length*daysInMonth;
@@ -596,7 +596,7 @@ export default function App(){
                         <span style={{color:D.success}}>{completedGoalDays} hits · {goalPct}%</span>
                       </div>
                       <div style={{background:D.bg,borderRadius:4,height:4,overflow:"hidden"}}>
-                        <div style={{height:"100%",width:`${goalPct}%`,background:`linear-gradient(90deg,${D.success},#6EE7B7)`,borderRadius:4,transition:"width 0.6s ease"}}/>
+                        <div style={{height:"100%",width:goalPct+"%",background:"linear-gradient(90deg,"+D.success+",#6EE7B7)",borderRadius:4,transition:"width 0.6s ease"}}/>
                       </div>
                     </div>
                   );
@@ -647,14 +647,14 @@ export default function App(){
               <>
                 <SectionLabel style={{marginTop:22}}>Custom Goals</SectionLabel>
                 {isPastDay(selectedDate)&&!hasApprovedRequest(selectedDate)?(
-                  <div style={{background:D.surface,borderRadius:D.r12,padding:"12px 16px",fontSize:13,color:D.textTert,border:`1px solid ${D.divider}`}}>
+                  <div style={{background:D.surface,borderRadius:D.r12,padding:"12px 16px",fontSize:13,color:D.textTert,border:"1px solid "+D.divider}}>
                     {editRequests.some(r=>r.requested_date===selectedDate&&r.status==="pending")?<span style={{color:D.warning,display:"flex",alignItems:"center",gap:6}}><Clock size={13}/>Request pending approval</span>:"Submit an edit request above to unlock goals for this day."}
                   </div>
                 ):goals.map((goal,i)=>{
                   const checked=goalCompletions.some(gc=>gc.goal_id===goal.id&&gc.completion_date===selectedDate);
                   const doneCount=goalCompletions.filter(gc=>gc.goal_id===goal.id).length;
                   const pct=Math.min(100,Math.round((doneCount/goal.target)*100));
-                  return <TaskRow key={goal.id} icon="target" label={goal.name} desc={`${doneCount} / ${goal.target} ${goal.unit}`} checked={checked} onClick={()=>toggleGoalCompletion(goal.id)} accent={goal.color} delay={i*50} progress={pct}/>;
+                  return <TaskRow key={goal.id} icon="target" label={goal.name} desc={doneCount+" / "+goal.target+" "+goal.unit} checked={checked} onClick={()=>toggleGoalCompletion(goal.id)} accent={goal.color} delay={i*50} progress={pct}/>;
                 })}
               </>
             )}
@@ -844,7 +844,7 @@ export default function App(){
         {screen==="admin"&&profile?.role==="manager"&&(
           <div style={{animation:"fadeUp 0.35s ease both"}}>
             <div style={{fontSize:22,fontWeight:700,color:D.textPrimary,fontFamily:FF,letterSpacing:1,marginBottom:16}}>Edit Requests</div>
-            {editRequests.length===0&&<div style={{background:D.surface,borderRadius:D.r16,padding:40,textAlign:"center",color:D.textTert,border:`1px solid ${D.divider}`}}>All warriors are up to date ✓</div>}
+            {editRequests.length===0&&<div style={{background:D.surface,borderRadius:D.r16,padding:40,textAlign:"center",color:D.textTert,border:"1px solid "+D.divider}}>All warriors are up to date ✓</div>}
             {editRequests.map(req=>(
               <div key={req.id} style={{background:D.surface,borderRadius:D.r16,padding:16,marginBottom:12,border:req.status==="pending"?"1px solid rgba(214,178,94,0.3)":req.status==="approved"?"1px solid rgba(53,193,139,0.3)":"1px solid rgba(255,90,95,0.2)"}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
@@ -861,7 +861,7 @@ export default function App(){
                     <button onClick={()=>reviewEditRequest(req.id,"denied")}   style={{flex:1,padding:10,background:"rgba(255,90,95,0.08)",border:`1px solid rgba(255,90,95,0.2)`,color:D.danger,borderRadius:D.r10,cursor:"pointer",fontSize:14,fontWeight:600}}>Deny</button>
                   </div>
                 ):(
-                  <button onClick={()=>reviewEditRequest(req.id,"pending")} style={{padding:"8px 16px",background:D.surface2,border:`1px solid ${D.divider}`,color:D.textTert,borderRadius:D.r10,cursor:"pointer",fontSize:13,fontWeight:600}}>↩ Reset to Pending</button>
+                  <button onClick={()=>reviewEditRequest(req.id,"pending")} style={{padding:"8px 16px",background:D.surface2,border:"1px solid "+D.divider,color:D.textTert,borderRadius:D.r10,cursor:"pointer",fontSize:13,fontWeight:600}}>↩ Reset to Pending</button>
                 )}
               </div>
             ))}
@@ -870,7 +870,7 @@ export default function App(){
       </div>
 
       {/* Bottom Tab Bar */}
-      <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:100,background:"rgba(7,10,15,0.96)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderTop:`1px solid ${D.divider}`,display:"flex",justifyContent:"space-around",alignItems:"center",padding:"8px 0 max(8px,env(safe-area-inset-bottom))"}}>
+      <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:100,background:"rgba(7,10,15,0.96)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderTop:"1px solid "+D.divider,display:"flex",justifyContent:"space-around",alignItems:"center",padding:"8px 0 max(8px,env(safe-area-inset-bottom))"}}>
         {tabs.map(tab=>{
           const active=screen===tab.id;
           return(
@@ -940,10 +940,10 @@ function GoalsScreen({goals,setGoals,goalCompletions,userId,onAddGoal}){
         <div style={{fontSize:22,fontWeight:700,color:D.textPrimary,fontFamily:FF,letterSpacing:1}}>Goals</div>
         <button onClick={onAddGoal} style={{background:D.brandMuted,border:`1px solid rgba(214,178,94,0.3)`,color:D.brand,borderRadius:D.r12,padding:"8px 16px",cursor:"pointer",fontSize:14,fontWeight:600}}>+ Add</button>
       </div>
-      <div style={{background:D.surface,borderRadius:D.r16,padding:16,marginBottom:16,border:`1px solid ${D.divider}`}}>
+      <div style={{background:D.surface,borderRadius:D.r16,padding:16,marginBottom:16,border:"1px solid "+D.divider}}>
         <div style={{fontSize:11,color:D.textTert,fontWeight:600,letterSpacing:1,textTransform:"uppercase",marginBottom:12}}>Core 4 — Daily</div>
         {CORE4.map((item,i)=>(
-          <div key={item.id} style={{display:"flex",alignItems:"center",gap:12,padding:"9px 0",borderBottom:i<3?`1px solid ${D.divider}`:"none"}}>
+          <div key={item.id} style={{display:"flex",alignItems:"center",gap:12,padding:"9px 0",borderBottom:i<3?"1px solid "+D.divider:"none"}}>
             <C4Icon icon={item.icon} size={18} color={D.textSec}/>
             <div style={{flex:1}}>
               <div style={{fontSize:14,fontWeight:600,color:D.textPrimary}}>{item.label}</div>
@@ -954,12 +954,12 @@ function GoalsScreen({goals,setGoals,goalCompletions,userId,onAddGoal}){
         ))}
       </div>
       <div style={{fontSize:11,color:D.textTert,fontWeight:600,letterSpacing:1,textTransform:"uppercase",marginBottom:10}}>Custom Goals</div>
-      {goals.length===0&&<div style={{background:D.surface,borderRadius:D.r16,padding:40,textAlign:"center",color:D.textTert,border:`1px solid ${D.divider}`}}>No custom goals yet.<br/><span style={{color:D.brand,cursor:"pointer"}} onClick={onAddGoal}>Add your first goal →</span></div>}
+      {goals.length===0&&<div style={{background:D.surface,borderRadius:D.r16,padding:40,textAlign:"center",color:D.textTert,border:"1px solid "+D.divider}}>No custom goals yet.<br/><span style={{color:D.brand,cursor:"pointer"}} onClick={onAddGoal}>Add your first goal →</span></div>}
       {goals.map(goal=>{
         const dc=goalCompletions.filter(gc=>gc.goal_id===goal.id).length;
         const pct=Math.min(100,Math.round((dc/goal.target)*100));
         return(
-          <div key={goal.id} style={{background:D.surface,borderRadius:D.r16,padding:16,marginBottom:10,border:`1px solid ${D.divider}`}}>
+          <div key={goal.id} style={{background:D.surface,borderRadius:D.r16,padding:16,marginBottom:10,border:"1px solid "+D.divider}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
               <div style={{display:"flex",alignItems:"center",gap:10}}>
                 <div style={{width:10,height:10,borderRadius:"50%",background:goal.color,flexShrink:0}}/>
@@ -973,7 +973,7 @@ function GoalsScreen({goals,setGoals,goalCompletions,userId,onAddGoal}){
                 <button onClick={()=>removeGoal(goal.id)} style={{background:"none",border:"none",color:D.textTert,cursor:"pointer",padding:4,display:"flex",alignItems:"center"}}><X size={14}/></button>
               </div>
             </div>
-            <div style={{background:D.bg,borderRadius:4,height:4,overflow:"hidden"}}><div style={{height:"100%",width:`${pct}%`,background:goal.color,borderRadius:4,transition:"width 0.5s"}}/></div>
+            <div style={{background:D.bg,borderRadius:4,height:4,overflow:"hidden"}}><div style={{height:"100%",width:pct+"%",background:goal.color,borderRadius:4,transition:"width 0.5s"}}/></div>
             <div style={{display:"flex",justifyContent:"space-between",fontSize:11,color:D.textTert,marginTop:6}}><span>Progress</span><span style={{color:goal.color}}>{pct}%</span></div>
           </div>
         );
@@ -999,11 +999,11 @@ function AddGoalSheet({userId,setGoals,onClose}){
   return(
     <div style={{position:"fixed",inset:0,zIndex:200,display:"flex",flexDirection:"column",justifyContent:"flex-end"}}>
       <div onClick={onClose} style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.65)",backdropFilter:"blur(4px)"}}/>
-      <div style={{position:"relative",background:D.surface2,borderRadius:"20px 20px 0 0",padding:"8px 20px 48px",animation:"fadeUp 0.28s ease both",border:`1px solid ${D.divider}`}}>
+      <div style={{position:"relative",background:D.surface2,borderRadius:"20px 20px 0 0",padding:"8px 20px 48px",animation:"fadeUp 0.28s ease both",border:"1px solid "+D.divider}}>
         <div style={{width:36,height:4,background:D.divider,borderRadius:2,margin:"12px auto 22px"}}/>
         <div style={{fontSize:18,fontWeight:700,color:D.textPrimary,marginBottom:20}}>New Goal</div>
         <label style={{fontSize:11,color:D.textTert,fontWeight:600,letterSpacing:0.5,display:"block",marginBottom:6}}>GOAL NAME</label>
-        <input value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Go to gym" style={{width:"100%",background:D.bg,border:`1px solid ${D.divider}`,borderRadius:D.r10,padding:"12px 14px",color:D.textPrimary,fontSize:15,outline:"none",marginBottom:16}}/>
+        <input value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Go to gym" style={{width:"100%",background:D.bg,border:"1px solid "+D.divider,borderRadius:D.r10,padding:"12px 14px",color:D.textPrimary,fontSize:15,outline:"none",marginBottom:16}}/>
         <div style={{marginBottom:16}}>
           <label style={{fontSize:11,color:D.textTert,fontWeight:600,letterSpacing:0.5,display:"block",marginBottom:8}}>FREQUENCY</label>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:12}}>
@@ -1023,13 +1023,13 @@ function AddGoalSheet({userId,setGoals,onClose}){
           </div>
           <div>
             <label style={{fontSize:11,color:D.textTert,fontWeight:600,letterSpacing:0.5,display:"block",marginBottom:6}}>UNIT</label>
-            <input value={unit} onChange={e=>setUnit(e.target.value)} placeholder="times" style={{width:"100%",background:D.bg,border:`1px solid ${D.divider}`,borderRadius:D.r10,padding:"12px 14px",color:D.textPrimary,fontSize:15,outline:"none"}}/>
+            <input value={unit} onChange={e=>setUnit(e.target.value)} placeholder="times" style={{width:"100%",background:D.bg,border:"1px solid "+D.divider,borderRadius:D.r10,padding:"12px 14px",color:D.textPrimary,fontSize:15,outline:"none"}}/>
           </div>
         </div>
         <label style={{fontSize:11,color:D.textTert,fontWeight:600,letterSpacing:0.5,display:"block",marginBottom:10}}>COLOR</label>
         <div style={{display:"flex",gap:10,marginBottom:24,flexWrap:"wrap"}}>
           {GOAL_COLORS.map(c=>(
-            <div key={c} onClick={()=>setColor(c)} style={{width:30,height:30,borderRadius:"50%",background:c,cursor:"pointer",border:color===c?"3px solid #fff":"3px solid transparent",boxShadow:color===c?`0 0 0 2px ${c}`:"none",transition:"all 0.15s"}}/>
+            <div key={c} onClick={()=>setColor(c)} style={{width:30,height:30,borderRadius:"50%",background:c,cursor:"pointer",border:color===c?"3px solid #fff":"3px solid transparent",boxShadow:color===c?"0 0 0 2px "+c:"none",transition:"all 0.15s"}}/>
           ))}
         </div>
         <button onClick={save} disabled={saving||!name.trim()} style={{width:"100%",padding:15,background:D.brand,border:"none",borderRadius:D.r12,cursor:"pointer",color:"#000",fontSize:16,fontWeight:700,opacity:saving||!name.trim()?0.5:1}}>
@@ -1051,7 +1051,7 @@ function EditRequestCard({selectedDate,editRequests,requestReason,setRequestReas
       :denied?<div style={{background:"rgba(255,90,95,0.08)",borderRadius:D.r10,padding:"10px 14px",fontSize:13,color:D.danger,display:"flex",alignItems:"center",gap:8}}><XCircle size={14}/>Request denied — contact your manager</div>
       :(
         <>
-          <textarea value={requestReason} onChange={e=>setRequestReason(e.target.value)} placeholder="Why do you need to edit this day?" rows={3} style={{width:"100%",background:D.bg,border:`1px solid ${D.divider}`,borderRadius:D.r10,padding:"12px 14px",color:D.textPrimary,fontSize:13,outline:"none",resize:"vertical",marginBottom:10}}/>
+          <textarea value={requestReason} onChange={e=>setRequestReason(e.target.value)} placeholder="Why do you need to edit this day?" rows={3} style={{width:"100%",background:D.bg,border:"1px solid "+D.divider,borderRadius:D.r10,padding:"12px 14px",color:D.textPrimary,fontSize:13,outline:"none",resize:"vertical",marginBottom:10}}/>
           {requestMsg&&<div style={{fontSize:12,color:requestMsg.startsWith("✅")?D.success:D.danger,marginBottom:10}}>{requestMsg}</div>}
           <button onClick={onSubmit} disabled={!requestReason.trim()} style={{padding:"11px 22px",background:D.brandMuted,border:`1px solid rgba(214,178,94,0.3)`,color:D.brand,borderRadius:D.r10,cursor:"pointer",fontSize:14,fontWeight:600,opacity:!requestReason.trim()?0.5:1}}>Send Request</button>
         </>
@@ -1124,7 +1124,7 @@ function LeaderboardScreen({leaderboard,allLogs,goalCompletions,userId,now2}){
       </div>
 
       {/* Segmented Control */}
-      <div style={{display:"flex",background:D.surface,borderRadius:D.r12,padding:4,marginBottom:20,border:`1px solid ${D.divider}`}}>
+      <div style={{display:"flex",background:D.surface,borderRadius:D.r12,padding:4,marginBottom:20,border:"1px solid "+D.divider}}>
         {segments.map(seg=>(
           <button key={seg.id} onClick={()=>setFilter(seg.id)} style={{
             flex:1,padding:"9px 4px",border:"none",cursor:"pointer",
@@ -1158,7 +1158,7 @@ function LeaderboardScreen({leaderboard,allLogs,goalCompletions,userId,now2}){
           {/* 1st */}
           <div style={{flex:1,textAlign:"center",animation:"fadeUp 0.4s ease 0ms both"}}>
             <div style={{marginBottom:4,color:D.brand}}><Crown size={22} fill={D.brand}/></div>
-            <div style={{width:56,height:56,borderRadius:"50%",background:D.brandMuted,border:`2px solid ${D.brand}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,fontWeight:700,color:D.brand,margin:"0 auto 6px",boxShadow:`0 0 16px rgba(214,178,94,0.3)`}}>
+            <div style={{width:56,height:56,borderRadius:"50%",background:D.brandMuted,border:"2px solid "+D.brand,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,fontWeight:700,color:D.brand,margin:"0 auto 6px",boxShadow:`0 0 16px rgba(214,178,94,0.3)`}}>
               {sorted[0]?.name?.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase()}
             </div>
             <div style={{fontSize:13,fontWeight:700,color:D.textPrimary,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:90,margin:"0 auto"}}>{sorted[0]?.name?.split(" ")[0]}</div>
@@ -1247,11 +1247,11 @@ function LeaderboardScreen({leaderboard,allLogs,goalCompletions,userId,now2}){
       )}
 
       {/* Scoring info */}
-      <div style={{marginTop:16,background:D.surface,borderRadius:D.r12,padding:"14px 16px",border:`1px solid ${D.divider}`}}>
+      <div style={{marginTop:16,background:D.surface,borderRadius:D.r12,padding:"14px 16px",border:"1px solid "+D.divider}}>
         <div style={{fontSize:11,color:D.textTert,fontWeight:600,letterSpacing:1,textTransform:"uppercase",marginBottom:10}}>Scoring</div>
         <div style={{display:"flex",gap:0}}>
           {[{label:"Core 4 item",pts:"10"},{label:"Full Power Hour",pts:"+20"},{label:"Custom goal",pts:"5"}].map((s,i)=>(
-            <div key={i} style={{flex:1,textAlign:"center",padding:"8px 4px",borderRight:i<2?`1px solid ${D.divider}`:"none"}}>
+            <div key={i} style={{flex:1,textAlign:"center",padding:"8px 4px",borderRight:i<2?"1px solid "+D.divider:"none"}}>
               <div style={{fontSize:18,fontWeight:700,color:D.brand,fontFamily:FF,lineHeight:1}}>{s.pts}</div>
               <div style={{fontSize:10,color:D.textTert,marginTop:4,lineHeight:1.3}}>{s.label}</div>
             </div>
@@ -1329,7 +1329,7 @@ function SectionLabel({children,style}){
 
 function SettingsGroup({title,children}){
   return(
-    <div style={{background:D.surface,borderRadius:D.r16,padding:16,marginBottom:12,border:`1px solid ${D.divider}`}}>
+    <div style={{background:D.surface,borderRadius:D.r16,padding:16,marginBottom:12,border:"1px solid "+D.divider}}>
       <div style={{fontSize:11,fontWeight:600,color:D.textTert,letterSpacing:1,textTransform:"uppercase",marginBottom:12}}>{title}</div>
       {children}
     </div>
