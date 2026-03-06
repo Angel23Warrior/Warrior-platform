@@ -415,7 +415,36 @@ export default function App(){
     const dk=selectedDate;
     const ex=goalCompletions.find(gc=>gc.goal_id===goalId&&gc.completion_date===dk);
     if(ex){await supabase.from("goal_completions").delete().eq("id",ex.id);setGoalCompletions(prev=>prev.filter(gc=>gc.id!==ex.id));}
-    else{const {data}=await supabase.from("goal_completions").insert({user_id:user.id,goal_id:goalId,completion_date:dk}).select().single();if(data)setGoalCompletions(prev=>[...prev,data]);}
+    else{const {data}=await supabase.from("goal_completions").insert({user_id:user.id,goal_id:goalId,completion_date:dk,count:1}).select().single();if(data)setGoalCompletions(prev=>[...prev,data]);}
+    await loadLeaderboard();
+  }
+
+  async function incrementGoal(goalId){
+    const dk=selectedDate;
+    const ex=goalCompletions.find(gc=>gc.goal_id===goalId&&gc.completion_date===dk);
+    if(ex){
+      const newCount=(ex.count||1)+1;
+      await supabase.from("goal_completions").update({count:newCount}).eq("id",ex.id);
+      setGoalCompletions(prev=>prev.map(gc=>gc.id===ex.id?{...gc,count:newCount}:gc));
+    } else {
+      const {data}=await supabase.from("goal_completions").insert({user_id:user.id,goal_id:goalId,completion_date:dk,count:1}).select().single();
+      if(data)setGoalCompletions(prev=>[...prev,data]);
+    }
+    await loadLeaderboard();
+  }
+
+  async function decrementGoal(goalId){
+    const dk=selectedDate;
+    const ex=goalCompletions.find(gc=>gc.goal_id===goalId&&gc.completion_date===dk);
+    if(!ex)return;
+    const newCount=(ex.count||1)-1;
+    if(newCount<=0){
+      await supabase.from("goal_completions").delete().eq("id",ex.id);
+      setGoalCompletions(prev=>prev.filter(gc=>gc.id!==ex.id));
+    } else {
+      await supabase.from("goal_completions").update({count:newCount}).eq("id",ex.id);
+      setGoalCompletions(prev=>prev.map(gc=>gc.id===ex.id?{...gc,count:newCount}:gc));
+    }
     await loadLeaderboard();
   }
 
