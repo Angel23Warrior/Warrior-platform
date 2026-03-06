@@ -198,13 +198,20 @@ export default function App(){
   const prevC4=useRef(0);
 
   useEffect(()=>{
+    // Check immediately if this is a password reset link
+    const hash=window.location.hash;
+    const isRecovery=hash.includes("type=recovery");
+    if(isRecovery){
+      setAuthMode("reset");
+      setReady(true);
+      return;
+    }
     const minLoad=new Promise(r=>setTimeout(r,5000));
     const sess=supabase.auth.getSession().then(({data:{session}})=>session);
     Promise.all([minLoad,sess]).then(async([,session])=>{
       if(session?.user){
         setUser(session.user);
         await loadUserData(session.user.id);
-        // Register service worker
         if("serviceWorker" in navigator){
           navigator.serviceWorker.register("/sw.js").catch(e=>console.log("SW reg failed:",e));
         }
@@ -214,19 +221,23 @@ export default function App(){
       }
     });
     const {data:{subscription}}=supabase.auth.onAuthStateChange((_e,session)=>{
-      // Handle password recovery flow
       if(_e==="PASSWORD_RECOVERY"){
-        setUser(null); // don't log them in yet
+        setUser(null);
         setAuthMode("reset");
         setReady(true);
         return;
       }
-      if(session?.user){setUser(session.user);loadUserData(session.user.id);
-        // Register service worker
+      if(session?.user){
+        setUser(session.user);
+        loadUserData(session.user.id);
         if("serviceWorker" in navigator){
           navigator.serviceWorker.register("/sw.js").catch(e=>console.log("SW reg failed:",e));
-        }setScreen("dashboard");}
-      else{setUser(null);setScreen("login");}
+        }
+        setScreen("dashboard");
+      } else {
+        setUser(null);
+        setScreen("login");
+      }
     });
     return()=>subscription.unsubscribe();
   },[]);
@@ -674,9 +685,49 @@ export default function App(){
                   </div>
                 ):goals.map((goal,i)=>{
                   const checked=goalCompletions.some(gc=>gc.goal_id===goal.id&&gc.completion_date===selectedDate);
-                  const doneCount=goalCompletions.filter(gc=>gc.goal_id===goal.id).length;
-                  const pct=Math.min(100,Math.round((doneCount/goal.target)*100));
-                  return <TaskRow key={goal.id} icon="target" label={goal.name} desc={doneCount+" / "+goal.target+" "+goal.unit} checked={checked} onClick={()=>toggleGoalCompletion(goal.id)} accent={goal.color} delay={i*50} progress={pct}/>;
+                  const isCounter=goal.goal_type==="counter";
+                  // For counter: sum all counts across the period, for checkbox: count completions
+                  const periodCompletions=goalCompletions.filter(gc=>{
+                    if(gc.goal_id!==goal.id)return false;
+                    const now=new Date();
+                    const gcDate=new Date(gc.completion_date);
+                    if(goal.unit==="daily"){return gc.completion_date===selectedDate;}
+                    if(goal.unit==="weekly"){
+                      const startOfWeek=new Date(now);
+                      startOfWeek.setDate(now.getDate()-now.getDay());
+                      return gcDate>=startOfWeek;
+                    }
+                    if(goal.unit==="monthly"){
+                      return gcDate.getMonth()===now.getMonth()&&gcDate.getFullYear()===now.getFullYear();
+                    }
+                    return true;
+                  });
+                  const totalCount=isCounter
+                    ? periodCompletions.reduce((sum,gc)=>sum+(gc.count||1),0)
+                    : periodCompletions.length;
+                  const todayEntry=goalCompletions.find(gc=>gc.goal_id===goal.id&&gc.completion_date===selectedDate);
+                  const todayCount=isCounter?(todayEntry?.count||0):0;
+                  const pct=Math.min(100,Math.round((totalCount/goal.target)*100));
+                  const periodLabel=goal.unit==="daily"?"today":goal.unit==="weekly"?"this week":"this month";
+                  if(isCounter){
+                    return(
+                      <div key={goal.id} style={{background:D.surface,borderRadius:D.r12,padding:"14px 16px",marginBottom:9,display:"flex",alignItems:"center",gap:12,animation:"fadeUp 0.3s ease both",animationDelay:(i*50)+"ms"}}>
+                        <div style={{flex:1}}>
+                          <div style={{fontSize:14,fontWeight:600,color:D.textPrimary,marginBottom:2}}>{goal.name}</div>
+                          <div style={{fontSize:12,color:D.textTert,marginBottom:6}}>{totalCount} / {goal.target} {periodLabel}</div>
+                          <div style={{background:D.bg,borderRadius:4,height:4,overflow:"hidden"}}>
+                            <div style={{height:"100%",width:pct+"%",background:goal.color,borderRadius:4,transition:"width 0.5s"}}/>
+                          </div>
+                        </div>
+                        <div style={{display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
+                          <button onClick={()=>decrementGoal(goal.id)} style={{width:32,height:32,borderRadius:"50%",background:"rgba(255,255,255,0.08)",border:"none",color:D.textPrimary,fontSize:18,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700}}>−</button>
+                          <span style={{fontSize:20,fontWeight:700,color:goal.color,fontFamily:FF,minWidth:24,textAlign:"center"}}>{todayCount}</span>
+                          <button onClick={()=>incrementGoal(goal.id)} style={{width:32,height:32,borderRadius:"50%",background:goal.color,border:"none",color:"#000",fontSize:18,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700}}>+</button>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return <TaskRow key={goal.id} icon="target" label={goal.name} desc={totalCount+" / "+goal.target+" "+periodLabel} checked={!!todayEntry} onClick={()=>toggleGoalCompletion(goal.id)} accent={goal.color} delay={i*50} progress={pct}/>;
                 })}
               </>
             )}
@@ -1008,13 +1059,14 @@ function AddGoalSheet({userId,setGoals,onClose}){
   const [name,setName]=useState("");
   const [target,setTarget]=useState(1);
   const [period,setPeriod]=useState("daily");
+  const [goalType,setGoalType]=useState("checkbox");
   const [color,setColor]=useState(GOAL_COLORS[0]);
   const [saving,setSaving]=useState(false);
   async function save(){
     if(!name.trim())return;
     setSaving(true);
-    const unit=period; // store period as unit field
-    const {data}=await supabase.from("goals").insert({user_id:userId,name:name.trim(),target:Number(target),unit,color}).select().single();
+    const unit=period;
+    const {data}=await supabase.from("goals").insert({user_id:userId,name:name.trim(),target:Number(target),unit,color,goal_type:goalType}).select().single();
     if(data)setGoals(prev=>[...prev,data]);
     onClose();
   }
@@ -1026,6 +1078,15 @@ function AddGoalSheet({userId,setGoals,onClose}){
         <div style={{fontSize:18,fontWeight:700,color:D.textPrimary,marginBottom:20}}>New Goal</div>
         <label style={{fontSize:11,color:D.textTert,fontWeight:600,letterSpacing:0.5,display:"block",marginBottom:6}}>GOAL NAME</label>
         <input value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Go to gym" style={{width:"100%",background:D.bg,border:"1px solid "+D.divider,borderRadius:D.r10,padding:"12px 14px",color:D.textPrimary,fontSize:15,outline:"none",marginBottom:16}}/>
+        <label style={{fontSize:11,color:D.textTert,fontWeight:600,letterSpacing:0.5,display:"block",marginBottom:8}}>GOAL TYPE</label>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:16}}>
+          <button onClick={()=>setGoalType("checkbox")} style={{padding:"12px 0",borderRadius:D.r10,border:"1px solid "+(goalType==="checkbox"?color:"rgba(255,255,255,0.1)"),background:goalType==="checkbox"?"rgba(214,178,94,0.1)":D.bg,color:goalType==="checkbox"?color:D.textTert,fontSize:13,fontWeight:600,cursor:"pointer"}}>
+            ✓ Done / Not Done
+          </button>
+          <button onClick={()=>setGoalType("counter")} style={{padding:"12px 0",borderRadius:D.r10,border:"1px solid "+(goalType==="counter"?color:"rgba(255,255,255,0.1)"),background:goalType==="counter"?"rgba(214,178,94,0.1)":D.bg,color:goalType==="counter"?color:D.textTert,fontSize:13,fontWeight:600,cursor:"pointer"}}>
+            + Count It Up
+          </button>
+        </div>
         <div style={{marginBottom:16}}>
           <label style={{fontSize:11,color:D.textTert,fontWeight:600,letterSpacing:0.5,display:"block",marginBottom:8}}>FREQUENCY</label>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:12}}>
